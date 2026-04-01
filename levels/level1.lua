@@ -1,0 +1,159 @@
+local level = {}
+
+function level.load()
+    world = love.physics.newWorld(0, 1000, true) -- gravidade mais forte
+
+    -- GROUND
+    ground = love.physics.newBody(world, 0, 400, "static")
+    groundShape = love.physics.newRectangleShape(800, 20)
+    groundFixture = love.physics.newFixture(ground, groundShape)
+
+    ground2 = love.physics.newBody(world, 1200, 400, "static")
+    ground2Shape = love.physics.newRectangleShape(800, 20)
+    ground2Fixture = love.physics.newFixture(ground2, ground2Shape)
+
+    -- PLAYER
+    player = {}
+    local px, py = ground:getPosition()
+    player.body = love.physics.newBody(world, px + 10, py - 32, "dynamic")
+    player.shape = love.physics.newCircleShape(20)
+    player.fixture = love.physics.newFixture(player.body, player.shape)
+    player.fixture:setFriction(1)
+    player.fixture:setRestitution(0.2)
+    player.grounded = false
+    player.jumps = 0
+
+    -- BALL
+    local num = math.random(5, 15)
+    ball = {}
+    ball.body = love.physics.newBody(world, 50, 380, "dynamic")
+    ball.shape = love.physics.newCircleShape(num)
+    ball.fixture = love.physics.newFixture(ball.body, ball.shape)
+    ball.fixture:setDensity(5)
+    ball.body:resetMassData() -- atualiza massa da bola
+
+    -- ARC
+    local radius = 200
+    local segments = 30
+    local startAngle = 0
+    local endAngle = math.pi
+
+    points = {}
+    for i = 0, segments do
+        local angle = startAngle + (endAngle - startAngle) * (i / segments)
+        table.insert(points, math.cos(angle) * radius)
+        table.insert(points, math.sin(angle) * radius)
+    end
+
+    arcBody = love.physics.newBody(world, 600, 400, "static")
+    arcShape = love.physics.newChainShape(false, unpack(points))
+    arcFixture = love.physics.newFixture(arcBody, arcShape)
+
+    -- CALLBACKS
+    world:setCallbacks(
+    function(a, b, coll) -- beginContact
+        -- checa se o player está envolvido na colisão
+        if a == player.fixture or b == player.fixture then
+            -- checa se está tocando o chão
+            if a == groundFixture or b == groundFixture then
+                player.grounded = true
+                player.jumps = 0
+            end
+        end
+    end,
+    function(a, b, coll) -- endContact
+        if a == player.fixture or b == player.fixture then
+            player.grounded = false
+        end
+    end
+)
+end
+
+function level.update(dt)
+    world:update(dt)
+
+    -- MOVIMENTO PLAYER
+    local vx, vy = player.body:getLinearVelocity()
+    if love.keyboard.isDown("right") then
+        player.body:setLinearVelocity(200, vy)
+    elseif love.keyboard.isDown("left") then
+        player.body:setLinearVelocity(-200, vy)
+    else
+        player.body:setLinearVelocity(0, vy)
+    end
+
+    -- RESTART
+    if love.keyboard.isDown("r") then
+        level.load()
+    end
+
+    -- SEGUIR BOLA
+    local x, y = player.body:getPosition()
+    local bx, by = ball.body:getPosition()
+    local vx_ball, vy_ball = ball.body:getLinearVelocity()
+
+    -- horizontal: segue player
+    if bx > x + 50 then
+        vx_ball = -100
+    elseif bx < x - 50 then
+        vx_ball = 100
+    else
+        vx_ball = 0
+    end
+
+    ball.body:setLinearVelocity(vx_ball, vy_ball) -- mantém gravidade vertical
+end
+
+function level.keypressed(key)
+    if key == "up" and player.jumps < 2 then
+        player.jumps = player.jumps + 1
+
+        local vx = 0
+        if love.keyboard.isDown("right") then vx = 200
+        elseif love.keyboard.isDown("left") then vx = -200 end
+
+        -- PULAR PLAYER
+        player.body:setLinearVelocity(vx, -500)
+
+        -- PULAR BOLA (menor impulso)
+        local _, vy_ball = ball.body:getLinearVelocity()
+        ball.body:setLinearVelocity(vx, -400)
+    end
+end
+
+function level.draw()
+    local x, y = player.body:getPosition()
+    local r = player.shape:getRadius()
+
+    love.graphics.push()
+    love.graphics.translate(
+        love.graphics.getWidth()/2 - x,
+        love.graphics.getHeight()/2 - y
+    )
+
+    -- PLAYER
+    love.graphics.circle("fill", x, y, r)
+
+    -- BALL
+    local bx, by = ball.body:getPosition()
+    local br = ball.shape:getRadius()
+    love.graphics.circle("fill", bx, by, br)
+
+    -- GROUND
+    local groundX, groundY = ground:getPosition()
+    love.graphics.rectangle("fill", groundX - 400, groundY - 10, 800, 20)
+
+    local ground2X, ground2Y = ground2:getPosition()
+    love.graphics.rectangle("fill", ground2X - 400, ground2Y - 10, 800, 20)
+
+    -- ARC
+    local ax, ay = arcBody:getPosition()
+    love.graphics.push()
+    love.graphics.translate(ax, ay)
+    love.graphics.line(points)
+    love.graphics.pop()
+
+    love.graphics.pop()
+end
+
+return level
