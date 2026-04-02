@@ -4,8 +4,7 @@ local levelAtual = nil
 
 -- Lista de fases
 local levels = {
-    "levels.level1",
-    "levels.level2"
+    "levels.level1"
 }
 
 -- Controle do menu

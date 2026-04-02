@@ -1,11 +1,5 @@
 local level = {}
 
-function love.conf(t)
-    t.window.width = 0   -- 0 = usa a largura nativa do dispositivo
-    t.window.height = 0  -- 0 = usa a altura nativa do dispositivo
-    t.window.fullscreen = true
-end
-
 function level.load()
     world = love.physics.newWorld(0, 1000, true) -- gravidade mais forte
     
@@ -67,17 +61,15 @@ function level.load()
 
     -- CALLBACKS
     world:setCallbacks(
-    function(a, b, coll) -- beginContact
-        -- checa se o player está envolvido na colisão
+    function(a, b, coll) 
         if a == player.fixture or b == player.fixture then
-            -- checa se está tocando o chão
             if (a == groundFixture or a == ground2Fixture) or (b == groundFixture or b == ground2Fixture) then
                 player.grounded = true
                 player.jumps = 0
             end
         end
     end,
-    function(a, b, coll) -- endContact
+    function(a, b, coll) 
         if a == player.fixture or b == player.fixture then
             player.grounded = false
         end
@@ -117,7 +109,7 @@ function level.update(dt)
         vx_ball = 0
     end
 
-    ball.body:setLinearVelocity(vx_ball, vy_ball) -- mantém gravidade vertical
+    ball.body:setLinearVelocity(vx_ball, vy_ball)
 end
 
 function level.keypressed(key)
