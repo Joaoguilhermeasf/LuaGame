@@ -1,7 +1,16 @@
 local level = {}
 
+function love.conf(t)
+    t.window.width = 0   -- 0 = usa a largura nativa do dispositivo
+    t.window.height = 0  -- 0 = usa a altura nativa do dispositivo
+    t.window.fullscreen = true
+end
+
 function level.load()
     world = love.physics.newWorld(0, 1000, true) -- gravidade mais forte
+    
+    -- BACKGROUND
+    background = love.graphics.newImage("/assets/background.png")
 
     -- GROUND
     ground = love.physics.newBody(world, 0, 400, "static")
@@ -12,11 +21,17 @@ function level.load()
     ground2Shape = love.physics.newRectangleShape(800, 20)
     ground2Fixture = love.physics.newFixture(ground2, ground2Shape)
 
+    wall = love.physics.newBody(world, -200, 0, "static")
+    wallShape = love.physics.newRectangleShape(20,1000)
+    wallFixture = love.physics.newFixture(wall, wallShape)
+
+
     -- PLAYER
     player = {}
     local px, py = ground:getPosition()
     player.body = love.physics.newBody(world, px + 10, py - 32, "dynamic")
-    player.shape = love.physics.newCircleShape(20)
+    player.shape = love.physics.newCircleShape(25)
+    player.image = love.graphics.newImage("/assets/bLob.png")
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.fixture:setFriction(1)
     player.fixture:setRestitution(0.2)
@@ -28,9 +43,10 @@ function level.load()
     ball = {}
     ball.body = love.physics.newBody(world, 50, 380, "dynamic")
     ball.shape = love.physics.newCircleShape(num)
+    ball.image = love.graphics.newImage("/assets/merpY.png")
     ball.fixture = love.physics.newFixture(ball.body, ball.shape)
     ball.fixture:setDensity(5)
-    ball.body:resetMassData() -- atualiza massa da bola
+    ball.body:resetMassData() 
 
     -- ARC
     local radius = 200
@@ -55,7 +71,7 @@ function level.load()
         -- checa se o player está envolvido na colisão
         if a == player.fixture or b == player.fixture then
             -- checa se está tocando o chão
-            if a == groundFixture or b == groundFixture then
+            if (a == groundFixture or a == ground2Fixture) or (b == groundFixture or b == ground2Fixture) then
                 player.grounded = true
                 player.jumps = 0
             end
@@ -122,6 +138,9 @@ function level.keypressed(key)
 end
 
 function level.draw()
+    love.graphics.draw(background, 0, 0)
+  
+
     local x, y = player.body:getPosition()
     local r = player.shape:getRadius()
 
@@ -132,12 +151,24 @@ function level.draw()
     )
 
     -- PLAYER
-    love.graphics.circle("fill", x, y, r)
 
+    local scale = (r * 3) / player.image:getWidth()
+
+    local angle = player.body:getAngle()
+    local ox = player.image:getWidth() / 2
+    local oy = player.image:getHeight() / 2
+
+    love.graphics.draw(player.image, x, y-5, angle, scale, scale, ox, oy)
+    
     -- BALL
     local bx, by = ball.body:getPosition()
     local br = ball.shape:getRadius()
-    love.graphics.circle("fill", bx, by, br)
+    local ball_angle = ball.body:getAngle()
+    local ball_ox = ball.image:getWidth() / 2
+    local ball_oy = ball.image:getHeight() / 2
+    local ball_scale = (br * 2) / ball.image:getWidth()
+
+    love.graphics.draw(ball.image, bx, by, ball_angle, ball_scale, ball_scale, ball_ox, ball_oy)
 
     -- GROUND
     local groundX, groundY = ground:getPosition()
