@@ -1,24 +1,25 @@
 local level = {}
 
 function level.load()
-    world = love.physics.newWorld(0, 1000, true) -- gravidade mais forte
+    world = love.physics.newWorld(0, 1000, true)
     
-    -- BACKGROUND
     background = love.graphics.newImage("/assets/background.png")
+
+    -- SCENARIO ASSETS
+    bush1 = love.graphics.newImage("/assets/bush.png")
 
     -- GROUND
     ground = love.physics.newBody(world, 0, 400, "static")
-    groundShape = love.physics.newRectangleShape(800, 20)
+    groundShape = love.physics.newRectangleShape(0, 390, 800, 800 )
     groundFixture = love.physics.newFixture(ground, groundShape)
 
     ground2 = love.physics.newBody(world, 1200, 400, "static")
-    ground2Shape = love.physics.newRectangleShape(800, 20)
+    ground2Shape = love.physics.newRectangleShape(0, 390, 800, 800 )
     ground2Fixture = love.physics.newFixture(ground2, ground2Shape)
 
     wall = love.physics.newBody(world, -200, 0, "static")
-    wallShape = love.physics.newRectangleShape(20,1000)
+    wallShape = love.physics.newRectangleShape(20, 1000)
     wallFixture = love.physics.newFixture(wall, wallShape)
-
 
     -- PLAYER
     player = {}
@@ -32,15 +33,28 @@ function level.load()
     player.grounded = false
     player.jumps = 0
 
-    -- BALL
-    local num = math.random(5, 30)
-    ball = {}
-    ball.body = love.physics.newBody(world, 120, 380, "dynamic")
-    ball.shape = love.physics.newCircleShape(num)
-    ball.image = love.graphics.newImage("/assets/merpY.png")
-    ball.fixture = love.physics.newFixture(ball.body, ball.shape)
-    ball.fixture:setDensity(5)
-    ball.body:resetMassData() 
+    -- BALLS 
+    balls = {}
+    local lostImage = love.graphics.newImage("/assets/LostMerpY.png")
+    local foundImage = love.graphics.newImage("/assets/merpY.png")
+
+    local spawnPositions = {
+        {x = 120, y = 380}
+    }
+
+    for _, pos in ipairs(spawnPositions) do
+        local num = math.random(5, 30)
+        local b = {}
+        b.body = love.physics.newBody(world, pos.x, pos.y, "dynamic")
+        b.shape = love.physics.newCircleShape(num)
+        b.image = lostImage
+        b.foundImage = foundImage
+        b.fixture = love.physics.newFixture(b.body, b.shape)
+        b.fixture:setDensity(5)
+        b.body:resetMassData()
+        b.active = false
+        table.insert(balls, b)
+    end
 
     -- ARC
     local radius = 200
@@ -61,27 +75,40 @@ function level.load()
 
     -- CALLBACKS
     world:setCallbacks(
-    function(a, b, coll) 
-        if a == player.fixture or b == player.fixture then
-            if (a == groundFixture or a == ground2Fixture) or (b == groundFixture or b == ground2Fixture) then
-                player.grounded = true
-                player.jumps = 0
+        function(a, b, coll)
+            -- PLAYER TOUCHED THE GROUND
+            if a == player.fixture or b == player.fixture then
+                if (a == groundFixture or a == ground2Fixture) or (b == groundFixture or b == ground2Fixture) then
+                    player.grounded = true
+                    player.jumps = 0
+                end
+            end
+
+            -- PLAYER TOUCHED THE BALL
+            for _, ball in ipairs(balls) do
+                if not ball.active then
+                    if (a == player.fixture and b == ball.fixture) or
+                       (b == player.fixture and a == ball.fixture) then
+                        ball.active = true
+                        ball.image = ball.foundImage
+                    end
+                end
+            end
+        end,
+        function(a, b, coll)
+            if a == player.fixture or b == player.fixture then
+                player.grounded = false
             end
         end
-    end,
-    function(a, b, coll) 
-        if a == player.fixture or b == player.fixture then
-            player.grounded = false
-        end
-    end
-)
+    )
 end
 
 function level.update(dt)
     world:update(dt)
 
-    -- MOVIMENTO PLAYER
     local vx, vy = player.body:getLinearVelocity()
+
+    -- MOVIMENTO PLAYER
     if love.keyboard.isDown("right") then
         player.body:setLinearVelocity(350, vy)
     elseif love.keyboard.isDown("left") then
@@ -95,28 +122,30 @@ function level.update(dt)
         level.load()
     end
 
-    -- SEGUIR BOLA
-    local x, y = player.body:getPosition()
-    local bx, by = ball.body:getPosition()
-    local vx_ball, vy_ball = ball.body:getLinearVelocity()
+    -- SBALL FOLLOWING PLAYER
+    local px, py = player.body:getPosition()
 
-    -- horizontal: segue player
-    if bx > x + 100 then
-        vx_ball = -100
-    elseif bx < x - 100 then
-        vx_ball = 100
-    else
-        vx_ball = 0
+    for _, ball in ipairs(balls) do
+        if ball.active then
+            local bx, by = ball.body:getPosition()
+            local vx_ball, vy_ball = ball.body:getLinearVelocity()
+
+            if bx > px + 100 then
+                vx_ball = -200
+            elseif bx < px - 100 then
+                vx_ball = 200
+            else
+                vx_ball = 0
+            end
+
+            ball.body:setLinearVelocity(vx_ball, vy_ball)
+        end
     end
 
-    ball.body:setLinearVelocity(vx_ball, vy_ball)
-
+    -- RESET TROUGH FALLING FROM THE MAP
     if vy > love.graphics.getHeight() then
-
-           level.load() 
-
+        level.load()
     end
-
 end
 
 function level.keypressed(key)
@@ -127,53 +156,51 @@ function level.keypressed(key)
         if love.keyboard.isDown("right") then vx = 350
         elseif love.keyboard.isDown("left") then vx = -350 end
 
-        -- PULAR PLAYER
         player.body:setLinearVelocity(vx, -500)
 
-        -- PULAR BOLA (menor impulso)
-        local _, vy_ball = ball.body:getLinearVelocity()
-        ball.body:setLinearVelocity(vx, -400)
+        for _, ball in ipairs(balls) do
+            if ball.active then
+                ball.body:setLinearVelocity(vx, -400)
+            end
+        end
     end
 end
 
 function level.draw()
+
     love.graphics.draw(background, 0, 0)
-  
-  
-    
+
     local x, y = player.body:getPosition()
     local r = player.shape:getRadius()
 
-    -- CAMERA
-
     love.graphics.push()
     love.graphics.translate(
-        love.graphics.getWidth()/2 - x,
-        love.graphics.getHeight()/2 - y
+        love.graphics.getWidth() / 2 - x,
+        love.graphics.getHeight() / 2 - y
     )
 
+    -- BUSH DRAW
+    love.graphics.draw(bush1, 900, 120, 0, 0.5, 0.5)
+
+
+
     -- PLAYER
-
     local scale = (r * 4) / player.image:getWidth()
-
     local angle = player.body:getAngle() / 3
     local ox = player.image:getWidth() / 2
     local oy = player.image:getHeight() / 2
+    love.graphics.draw(player.image, x, y - 22, angle, scale, scale, ox, oy)
 
-    love.graphics.draw(player.image, x, y-22, angle, scale, scale, ox, oy)
-    
-    -- BALL
-    local bx, by = ball.body:getPosition()
-    local br = ball.shape:getRadius()
-    local ball_angle = ball.body:getAngle() 
-    local ball_ox = ball.image:getWidth() / 2
-    local ball_oy = ball.image:getHeight() / 2
-    local ball_scale = (br * 2) / ball.image:getWidth()
-
-    love.graphics.draw(ball.image, bx, by, ball_angle, ball_scale, ball_scale, ball_ox, ball_oy)
-
-    -- OBJECTS
-    
+    -- BALLS
+    for _, ball in ipairs(balls) do
+        local bx, by = ball.body:getPosition()
+        local br = ball.shape:getRadius()
+        local ball_angle = ball.body:getAngle()
+        local ball_ox = ball.image:getWidth() / 2
+        local ball_oy = ball.image:getHeight() / 2
+        local ball_scale = (br * 2) / ball.image:getWidth()
+        love.graphics.draw(ball.image, bx, by, ball_angle, ball_scale, ball_scale, ball_ox, ball_oy)
+    end
 
     -- GROUND
     local groundX, groundY = ground:getPosition()
@@ -183,8 +210,7 @@ function level.draw()
     love.graphics.rectangle("fill", ground2X - 400, ground2Y - 10, 800, 800)
 
     local wallX, wallY = wall:getPosition()
-      love.graphics.rectangle("fill", wallX-1030, wallY -500, 1000, 2500)
-
+    love.graphics.rectangle("fill", wallX - 1030, wallY - 500, 1000, 2500)
 
     -- ARC
     local ax, ay = arcBody:getPosition()
@@ -192,8 +218,10 @@ function level.draw()
     love.graphics.translate(ax, ay)
     love.graphics.line(points)
     love.graphics.pop()
-
+  
     love.graphics.pop()
+
+  
 end
 
 return level
