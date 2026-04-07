@@ -1,5 +1,5 @@
 -- Estado do jogo
-local estado = "menu"
+local estado = "menu" -- "menu" ou "jogo"
 local levelAtual = nil
 
 -- Lista de fases
@@ -9,86 +9,84 @@ local levels = {
 
 local selecionado = 1
 
--- Área clicável do menu
-local botoes = {}
-
+-- Carrega a fase
 function carregarLevel(index)
     package.loaded[levels[index]] = nil
     levelAtual = require(levels[index])
     levelAtual.load()
 end
 
+-- LOAD
 function love.load()
+    love.graphics.setBackgroundColor(0.1, 0.1, 0.1)
 end
 
+-- UPDATE
 function love.update(dt)
     if estado == "jogo" and levelAtual then
         levelAtual.update(dt)
     end
 end
 
+-- DRAW
 function love.draw()
     if estado == "menu" then
-        love.graphics.print("SELECIONE UMA FASE", 300, 100)
+        local largura = love.graphics.getWidth()
+        local altura = love.graphics.getHeight()
 
-        botoes = {} -- limpa e recria a cada frame
+        love.graphics.setColor(1, 1, 1)
 
-        for i, lvl in ipairs(levels) do
-            local x = 320
-            local y = 150 + i * 40
-            local largura = 200
-            local altura = 30
-
-            -- salva área do botão
-            table.insert(botoes, {
-                x = x,
-                y = y,
-                w = largura,
-                h = altura,
-                index = i
-            })
-
-            if i == selecionado then
-                love.graphics.print("> Fase " .. i, x, y)
-            else
-                love.graphics.print("Fase " .. i, x + 20, y)
-            end
-        end
+        love.graphics.printf(
+            "TOQUE NA TELA PARA COMEÇAR",
+            0,
+            altura / 2 - 20,
+            largura,
+            "center"
+        )
 
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
     end
 end
 
-function love.keypressed(key)
+-- TOUCH (iPhone)
+function love.touchpressed(id, x, y)
     if estado == "menu" then
-        if key == "down" then
-            selecionado = selecionado % #levels + 1
-        elseif key == "up" then
-            selecionado = (selecionado - 2) % #levels + 1
-        elseif key == "return" then
-            carregarLevel(selecionado)
-            estado = "jogo"
-        elseif key == "escape" then
-            love.event.quit()
-        end
-    elseif estado == "jogo" then
-        if levelAtual.keypressed then
+        print("TOCOU NA TELA")
+
+        carregarLevel(selecionado)
+        estado = "jogo"
+    end
+end
+
+-- TOUCH RELEASE (backup para iOS)
+function love.touchreleased(id, x, y)
+    if estado == "menu" then
+        carregarLevel(selecionado)
+        estado = "jogo"
+    end
+end
+
+-- MOUSE (para testar no PC)
+function love.mousepressed(x, y, button)
+    if estado == "menu" then
+        print("CLIQUE NO MOUSE")
+
+        carregarLevel(selecionado)
+        estado = "jogo"
+    end
+end
+
+-- TECLADO
+function love.keypressed(key)
+    if estado == "jogo" then
+        if levelAtual and levelAtual.keypressed then
             levelAtual.keypressed(key)
-    
+        end
 
         if key == "escape" then
             estado = "menu"
             levelAtual = nil
-        end
-end
-
--- 🔥 TOUCH (celular)
-function love.touchpressed(id, x, y)
-    if estado == "menu" then
-      carregarLevel(selecionado)
-     estado = "jogo"
-            end
         end
     end
 end
