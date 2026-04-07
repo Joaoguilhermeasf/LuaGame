@@ -1,14 +1,16 @@
 local level = {}
 
+-- 🔥 TOUCH CONTROLE
+local touchStartX = nil
+local movingDir = 0 -- -1 esquerda, 1 direita, 0 parado
+
 function level.load()
     world = love.physics.newWorld(0, 1000, true)
     
     background = love.graphics.newImage("/assets/background.png")
 
-    -- SCENARIO ASSETS
     bush1 = love.graphics.newImage("/assets/bush.png")
 
-    -- TEXT
     font = love.graphics.newFont(48)
     welcomeText = love.graphics.newText(font, "Move with the arrow keys!")
     textX = -300
@@ -22,7 +24,6 @@ function level.load()
     fadeFall = 0
     fadeVel = 0.8
 
-    -- GROUND
     ground = {} 
     ground.body = love.physics.newBody(world, 0, 400, "static")
     ground.shape = love.physics.newRectangleShape(0, 390, love.graphics.getWidth()*2, 800)
@@ -37,12 +38,10 @@ function level.load()
     ground2.allowJump = true
     ground2.fixture:setUserData(ground2)
 
-    -- WALL
     wall = love.physics.newBody(world, -970, 0, "static")
     wallShape = love.physics.newRectangleShape(20, 1000)
     wallFixture = love.physics.newFixture(wall, wallShape)
 
-    -- OBSTACLES
     obstacle1 = {}
     obstacle1.body = love.physics.newBody(world, 1400, 400, "static")
     obstacle1.shape = love.physics.newRectangleShape(1045, 200)
@@ -50,7 +49,6 @@ function level.load()
     obstacle1.allowJump = true
     obstacle1.fixture:setUserData(obstacle1)
 
-    -- PLAYER
     player = {}
     local px, py = ground.body:getPosition()
     player.body = love.physics.newBody(world, px, py - 36, "dynamic")
@@ -63,7 +61,6 @@ function level.load()
     player.grounded = false
     player.jumps = 0
 
-    -- BALLS 
     balls = {}
     local lostImage = love.graphics.newImage("/assets/LostMerpY.png")
     local foundImage = love.graphics.newImage("/assets/merpY.png")
@@ -71,7 +68,6 @@ function level.load()
     local spawnPositions = {
         {x = 120, y = 380}
     }
-
 
     for _, pos in ipairs(spawnPositions) do
         local num = math.random(5, 30)
@@ -88,7 +84,6 @@ function level.load()
         table.insert(balls, b)
     end
 
-    -- CALLBACKS
     world:setCallbacks(
         function(a, b, coll)
             if a == player.fixture or b == player.fixture then
@@ -122,17 +117,17 @@ end
 function level.update(dt)
     world:update(dt)
     
-    -- PLAYER MOVEMENT
     local vx, vy = player.body:getLinearVelocity()
 
     local accel = 1200
     local maxSpeed = 550
     local friction = 2000
 
-    if love.keyboard.isDown("right") then
+    -- 🔥 ALTERADO (keyboard + swipe)
+    if love.keyboard.isDown("right") or movingDir == 1 then
         vx = math.min(vx + accel * dt, maxSpeed)
 
-    elseif love.keyboard.isDown("left") then
+    elseif love.keyboard.isDown("left") or movingDir == -1 then
         vx = math.max(vx - accel * dt, -maxSpeed)
 
     else
@@ -143,14 +138,12 @@ function level.update(dt)
         end
     end
 
-player.body:setLinearVelocity(vx, vy)
+    player.body:setLinearVelocity(vx, vy)
 
-    -- RESTART
     if love.keyboard.isDown("r") then
         level.load()
     end
 
-    -- BALL FOLLOWING PLAYER
     local px, py = player.body:getPosition()
 
     local bAccel = 950
@@ -178,12 +171,10 @@ player.body:setLinearVelocity(vx, vy)
         end
     end
 
-    -- FALLING RESET
     if py > love.graphics.getHeight() then
         level.load()
     end
 
-    -- FADE IN TEXT 
     if math.abs(px - textX) < 400 then
         fade = math.min(1, fade + fadeVel * dt)
     else
@@ -195,8 +186,6 @@ player.body:setLinearVelocity(vx, vy)
     else
         fadeFall = math.max(0, fadeFall - fadeVel * dt)
     end
-
-
 end
 
 function level.keypressed(key)
@@ -217,8 +206,29 @@ function level.keypressed(key)
     end
 end
 
-function level.draw()
+-- 🔥 TOUCH SWIPE
+function level.touchpressed(id, x, y)
+    touchStartX = x
+end
 
+function level.touchmoved(id, x, y)
+    if touchStartX then
+        local dx = x - touchStartX
+
+        if dx > 0.02 then
+            movingDir = 1
+        elseif dx < -0.02 then
+            movingDir = -1
+        end
+    end
+end
+
+function level.touchreleased(id, x, y)
+    touchStartX = nil
+    movingDir = 0
+end
+
+function level.draw()
     love.graphics.draw(background, 0, 0)
 
     local x, y = player.body:getPosition()
@@ -230,10 +240,8 @@ function level.draw()
         love.graphics.getHeight() / 2 - y
     )
 
-    -- BUSH
     love.graphics.draw(bush1, -900, 120, 0, 0.5, 0.5)
 
-    -- TEXT 
     love.graphics.setColor(1, 1, 1, fade)
     love.graphics.draw(welcomeText, textX, textY)
     love.graphics.setColor(1, 1, 1, 1)
@@ -242,14 +250,12 @@ function level.draw()
     love.graphics.draw(fallText, fallX, fallY)
     love.graphics.setColor(1, 1, 1, 1)
 
-    -- PLAYER
     local scale = (r * 4) / player.image:getWidth()
     local angle = player.body:getAngle() / 3
     local ox = player.image:getWidth() / 2
     local oy = player.image:getHeight() / 2
     love.graphics.draw(player.image, x, y - 22, angle, scale, scale, ox, oy)
 
-    -- BALLS
     for _, ball in ipairs(balls) do
         local bx, by = ball.body:getPosition()
         local br = ball.shape:getRadius()
@@ -260,20 +266,16 @@ function level.draw()
         love.graphics.draw(ball.image, bx, by, ball_angle, ball_scale, ball_scale, ball_ox, ball_oy)
     end
 
-    -- GROUND
     love.graphics.setColor(0.9, 0.7, 0.6, 1)
     local groundX, groundY = ground.body:getPosition()
     love.graphics.rectangle("fill", groundX - 1940, groundY - 10, (love.graphics.getWidth()*2) - 10, 800)
 
-    love.graphics.setColor(0.9, 0.7, 0.6, 1)
     local ground2x,ground2y = ground2.body:getPosition()
     love.graphics.rectangle("fill", ground2x - 1900, ground2y - 10, (love.graphics.getWidth()*2) - 35, 800 )
 
-    -- WALL
     local wallX, wallY = wall:getPosition()
     love.graphics.rectangle("fill", wallX - 1010, wallY - 500, 1000, 2500)
 
-    -- OBSTACLE
     local obs1X, obs1Y = obstacle1.body:getPosition()
     love.graphics.rectangle("fill", obs1X - 505, obs1Y - 100, 995, 450, 10, 10)
 
