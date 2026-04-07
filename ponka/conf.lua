@@ -1,10 +1,6 @@
--- FULLSCREEN
-
 function love.conf(t)
-    t.window.width = 0  
-    t.window.height = 0  
-    t.window.fullscreen = true
-    t.window.fullscreentype = "desktop"
-    t.window.orientation="landscapeleft"
-
+    t.window.fullscreen = false
+    t.window.width = 1280
+    t.window.height = 720
+    t.window.resizable = true
 end

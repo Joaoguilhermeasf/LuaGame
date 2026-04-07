@@ -6,97 +6,128 @@ local levels = {
 }
 
 local selecionado = 1
-local activeTouches = {}
 
+-- ========================
+-- RESOLUÇÃO VIRTUAL
+-- ========================
+BASE_WIDTH = 1920
+BASE_HEIGHT = 1080
+
+scale = 1
+offsetX = 0
+offsetY = 0
+
+local function screenToWorld(x, y)
+    x = x * love.graphics.getWidth()
+    y = y * love.graphics.getHeight()
+
+    x = (x - offsetX) / scale
+    y = (y - offsetY) / scale
+
+    return x, y
+end
+
+-- ========================
+-- BOTÕES DO MENU
+-- ========================
+menuButtons = {}
+
+local function criarMenu()
+    menuButtons = {}
+
+    for i = 1, #levels do
+        table.insert(menuButtons, {
+            x = BASE_WIDTH/2 - 200,
+            y = 300 + i * 120,
+            w = 400,
+            h = 80,
+            level = i
+        })
+    end
+end
+
+-- ========================
+-- LOAD LEVEL
+-- ========================
 function carregarLevel(index)
     package.loaded[levels[index]] = nil
     levelAtual = require(levels[index])
     levelAtual.load()
 end
 
+-- ========================
+-- LOVE LOAD
+-- ========================
 function love.load()
+    local sw = love.graphics.getWidth()
+    local sh = love.graphics.getHeight()
+
+    scale = math.min(sw / BASE_WIDTH, sh / BASE_HEIGHT)
+    offsetX = (sw - BASE_WIDTH * scale) / 2
+    offsetY = (sh - BASE_HEIGHT * scale) / 2
+
+    criarMenu()
 end
 
+-- ========================
+-- UPDATE
+-- ========================
 function love.update(dt)
     if estado == "jogo" and levelAtual then
-        -- Repassa touches ativos para o level calcular movimento
-        levelAtual.update(dt, activeTouches)
+        levelAtual.update(dt)
     end
 end
 
+-- ========================
+-- DRAW
+-- ========================
 function love.draw()
+    love.graphics.push()
+    love.graphics.translate(offsetX, offsetY)
+    love.graphics.scale(scale, scale)
+
     if estado == "menu" then
-        local w = love.graphics.getWidth()
-        local h = love.graphics.getHeight()
+        love.graphics.printf("SELECIONE UMA FASE",
+            0, 100, BASE_WIDTH, "center")
 
-        love.graphics.print("SELECIONE UMA FASE", 300, 100)
-
-        for i, lvl in ipairs(levels) do
-            if i == selecionado then
-                love.graphics.print("> Fase " .. i, 320, 150 + i*40)
-            else
-                love.graphics.print("Fase " .. i, 340, 150 + i*40)
-            end
+        for i, btn in ipairs(menuButtons) do
+            love.graphics.rectangle("line", btn.x, btn.y, btn.w, btn.h)
+            love.graphics.printf("FASE " .. i,
+                btn.x, btn.y + 20, btn.w, "center")
         end
-
-        -- Instrução para touch
-        love.graphics.print("Toque para iniciar", 300, h - 80)
 
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
+
+        -- BOTÃO VOLTAR
+        love.graphics.rectangle("line", 50, 50, 200, 80)
+        love.graphics.print("VOLTAR", 80, 80)
     end
+
+    love.graphics.pop()
 end
 
--- TECLADO
-function love.keypressed(key)
-    if estado == "menu" then
-        if key == "down" then
-            selecionado = selecionado % #levels + 1
-        elseif key == "up" then
-            selecionado = (selecionado - 2) % #levels + 1
-        elseif key == "return" then
-            carregarLevel(selecionado)
-            estado = "jogo"
-        elseif key == "escape" then
-            love.event.quit()
-        end
-    elseif estado == "jogo" then
-        if key == "escape" then
-            estado = "menu"
-            levelAtual = nil
-            activeTouches = {}
-        end
-        if levelAtual and levelAtual.keypressed then
-            levelAtual.keypressed(key)
-        end
-    end
-end
-
+-- ========================
 -- TOUCH
+-- ========================
 function love.touchpressed(id, x, y)
-    activeTouches[id] = x
+    x, y = screenToWorld(x, y)
 
     if estado == "menu" then
-        -- Qualquer toque inicia a fase selecionada
-        carregarLevel(selecionado)
-        estado = "jogo"
-
-    elseif estado == "jogo" and levelAtual then
-        local w = love.graphics.getWidth()
-
-        -- Meio da tela = pulo
-        if x > w * 0.35 and x < w * 0.65 then
-            if levelAtual.keypressed then
-                levelAtual.keypressed("up")
+        for _, btn in ipairs(menuButtons) do
+            if x > btn.x and x < btn.x + btn.w and
+               y > btn.y and y < btn.y + btn.h then
+                
+                carregarLevel(btn.level)
+                estado = "jogo"
             end
         end
+
+    elseif estado == "jogo" then
+        -- BOTÃO VOLTAR
+        if x > 50 and x < 250 and y > 50 and y < 130 then
+            estado = "menu"
+            levelAtual = nil
+        end
     end
-end
-
-function love.touchmoved(id, x, y)
-    activeTouches[id] = x
-end
-
-function love.touchreleased(id, x, y)
-    activeTouches[id] = nil
 end
