@@ -103,7 +103,7 @@ function level.draw()
     love.graphics.translate(-camX, -camY)
 
     -- Desenho do Mundo
-    love.graphics.setColor(0.2, 0.6, 0.2)
+    love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
     love.graphics.setColor(1, 1, 1)
