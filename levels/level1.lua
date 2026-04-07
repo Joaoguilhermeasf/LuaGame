@@ -417,11 +417,12 @@ function level.draw()
     love.graphics.rectangle("fill", 2500, 390, 4000, 800)
     love.graphics.rectangle("fill", 900, 300, 1000, 450)
 
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(1, 1, 1,1)
     love.graphics.pop()
 end
 
 return level
+
     touchStartX = x
 end
 
