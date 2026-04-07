@@ -3,7 +3,7 @@ local estado = "menu"
 local levelAtual = nil
 local selecionado = 1
 
--- O caminho deve ser 'levels/level1' se estiver na pasta levels
+-- Caminho correto da fase (pasta.arquivo)
 local caminhos = {
     "levels.level1" 
 }
@@ -32,13 +32,13 @@ function love.draw()
         local largura = love.graphics.getWidth()
         local altura = love.graphics.getHeight()
         love.graphics.setColor(1, 1, 1)
-        love.graphics.printf("TOQUE PARA COMEÇAR", 0, altura / 2, largura, "center")
+        love.graphics.printf("TOQUE NA TELA PARA COMEÇAR", 0, altura / 2, largura, "center")
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
     end
 end
 
--- --- CONEXÃO DO TOUCH COM A FASE ---
+-- --- EVENTOS DE TOUCH (REPASSANDO PARA A FASE) ---
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
     if estado == "menu" then
@@ -65,4 +65,5 @@ function love.keypressed(key)
     if estado == "jogo" and levelAtual and levelAtual.keypressed then
         levelAtual.keypressed(key)
     end
+    if key == "escape" then estado = "menu" end
 end
