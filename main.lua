@@ -1,77 +1,71 @@
 -- Estado do jogo
-local estado = "menu" -- "menu" ou "jogo"
+local estado = "menu" 
 local levelAtual = nil
-
--- Lista de fases
-local levels = {
-    "levels.level1"
-}
-
 local selecionado = 1
 
--- Carrega a fase
+local levels = {
+    "level" -- Certifique-se que o arquivo se chama level.lua
+}
+
 function carregarLevel(index)
+    -- Limpa o cache para permitir recarregar a fase do zero
     package.loaded[levels[index]] = nil
     levelAtual = require(levels[index])
-    levelAtual.load()
+    if levelAtual and levelAtual.load then
+        levelAtual.load()
+    end
 end
 
--- LOAD
 function love.load()
     love.graphics.setBackgroundColor(0.1, 0.1, 0.1)
 end
 
--- UPDATE
 function love.update(dt)
-    if estado == "jogo" and levelAtual then
+    if estado == "jogo" and levelAtual and levelAtual.update then
         levelAtual.update(dt)
     end
 end
 
--- DRAW
 function love.draw()
     if estado == "menu" then
         local largura = love.graphics.getWidth()
         local altura = love.graphics.getHeight()
-
         love.graphics.setColor(1, 1, 1)
-
-        love.graphics.printf(
-            "TOQUE NA TELA PARA COMEÇAR",
-            0,
-            altura / 2 - 20,
-            largura,
-            "center"
-        )
-
+        love.graphics.printf("TOQUE NA TELA PARA COMEÇAR", 0, altura / 2, largura, "center")
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
     end
 end
 
--- TOUCH (iPhone)
-function love.touchpressed(id, x, y)
-    if estado == "menu" then
-        print("TOCOU NA TELA")
+-- --- EVENTOS DE TOUCH (ESSENCIAL PARA O IOS) ---
 
-        carregarLevel(selecionado)
-        estado = "jogo"
-    end
-end
-
--- TOUCH RELEASE (backup para iOS)
-function love.touchreleased(id, x, y)
+function love.touchpressed(id, x, y, dx, dy, pressure)
     if estado == "menu" then
         carregarLevel(selecionado)
         estado = "jogo"
+    elseif estado == "jogo" and levelAtual and levelAtual.touchpressed then
+        -- Repassa o toque para o level.lua
+        levelAtual.touchpressed(id, x, y, dx, dy, pressure)
     end
 end
 
--- MOUSE (para testar no PC)
+function love.touchmoved(id, x, y, dx, dy, pressure)
+    if estado == "jogo" and levelAtual and levelAtual.touchmoved then
+        -- Repassa o movimento para o level.lua (isso faz o swipe funcionar!)
+        levelAtual.touchmoved(id, x, y, dx, dy, pressure)
+    end
+end
+
+function love.touchreleased(id, x, y, dx, dy, pressure)
+    if estado == "jogo" and levelAtual and levelAtual.touchreleased then
+        -- Repassa o soltar do dedo para o level.lua (isso faz o boneco parar!)
+        levelAtual.touchreleased(id, x, y, dx, dy, pressure)
+    end
+end
+
+-- MOUSE (para testes no PC)
 function love.mousepressed(x, y, button)
     if estado == "menu" then
-        print("CLIQUE NO MOUSE")
-
         carregarLevel(selecionado)
         estado = "jogo"
     end
@@ -83,7 +77,6 @@ function love.keypressed(key)
         if levelAtual and levelAtual.keypressed then
             levelAtual.keypressed(key)
         end
-
         if key == "escape" then
             estado = "menu"
             levelAtual = nil
