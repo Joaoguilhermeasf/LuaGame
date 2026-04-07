@@ -1,15 +1,14 @@
--- Estado do jogo
 local estado = "menu" 
 local levelAtual = nil
 local selecionado = 1
 
--- Caminho correto da fase (pasta.arquivo)
+-- Caminho usando ponto para indicar pasta/arquivo
 local caminhos = {
     "levels.level1" 
 }
 
 function carregarLevel(index)
-    -- Limpa o cache para permitir reiniciar a fase
+    -- Limpa o cache para permitir reiniciar a fase corretamente
     package.loaded[caminhos[index]] = nil
     levelAtual = require(caminhos[index])
     if levelAtual and levelAtual.load then
@@ -32,13 +31,13 @@ function love.draw()
         local largura = love.graphics.getWidth()
         local altura = love.graphics.getHeight()
         love.graphics.setColor(1, 1, 1)
-        love.graphics.printf("TOQUE NA TELA PARA COMEÇAR", 0, altura / 2, largura, "center")
+        love.graphics.printf("TOQUE PARA COMEÇAR", 0, altura / 2, largura, "center")
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
     end
 end
 
--- --- EVENTOS DE TOUCH (REPASSANDO PARA A FASE) ---
+-- --- CONEXÃO DOS EVENTOS DE TOQUE ---
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
     if estado == "menu" then
