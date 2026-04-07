@@ -1,44 +1,49 @@
 local level = {}
 
--- Variáveis de controle
+-- 🔥 CONTROLES E RESOLUÇÃO
 local touchStartX = nil
 local movingDir = 0 
+local scaleRetina = 1
 
 function level.load()
-    -- 1. Configuração de Física
-    love.physics.setMeter(64) 
-    world = love.physics.newWorld(0, 9.81 * 100, true)
+    -- 1. CONFIGURAÇÃO GRÁFICA (ADEUS PIXELS)
+    love.graphics.setDefaultFilter("linear", "linear", 16)
+    scaleRetina = love.window.getDPIScale() -- Detecta se é iPhone Retina (2x ou 3x)
+
+    -- 2. FÍSICA (AJUSTADA PARA ESCALA ALTA)
+    love.physics.setMeter(64)
+    world = love.physics.newWorld(0, 9.81 * 128, true)
     
-    -- 2. Assets em Alta Definição
-    -- DICA: Use imagens com o dobro do tamanho que você quer exibir
+    -- 3. CARREGAR ASSETS
     background = love.graphics.newImage("assets/background.png")
     playerImg = love.graphics.newImage("assets/bLob.png")
-    
-    -- Melhorar a filtragem para não borrar ao redimensionar
-    background:setFilter("linear", "linear")
-    playerImg:setFilter("linear", "linear")
+    -- Ativa Mipmaps para nitidez ao diminuir a imagem
+    playerImg:setFilter("linear", "linear", 16)
 
-    -- 3. Player (Física)
+    -- 4. CONFIGURAR PLAYER
+    -- Usamos dimensões lógicas, o LÖVE HighDPI cuida do resto
     player = {}
     player.body = love.physics.newBody(world, 200, 200, "dynamic")
-    player.shape = love.physics.newCircleShape(35) -- Aumentei um pouco o corpo
+    player.shape = love.physics.newCircleShape(30) -- Tamanho do colisor
     player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.fixture:setFriction(0.9)
+    player.fixture:setFriction(1.0)
+    player.fixture:setRestitution(0.2)
     player.jumps = 0
 
-    -- 4. Chão Automático (Se adapta à largura da tela do iPhone)
+    -- 5. CONFIGURAR CHÃO (Largo o suficiente para qualquer tela)
     local screenW = love.graphics.getWidth()
     local screenH = love.graphics.getHeight()
     
     ground = {}
     ground.body = love.physics.newBody(world, screenW/2, screenH - 50, "static")
-    ground.shape = love.physics.newRectangleShape(screenW * 10, 100)
+    ground.shape = love.physics.newRectangleShape(screenW * 20, 100)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
-    -- Callbacks de colisão
+    -- 6. CALLBACKS DE COLISÃO
     world:setCallbacks(function(a, b, coll)
-        local dataA, dataB = a:getUserData(), b:getUserData()
+        local dataA = a:getUserData()
+        local dataB = b:getUserData()
         if (a == player.fixture and dataB and dataB.allowJump) or 
            (b == player.fixture and dataA and dataA.allowJump) then
             player.jumps = 0
@@ -50,38 +55,44 @@ function level.update(dt)
     world:update(dt)
     
     local vx, vy = player.body:getLinearVelocity()
-    local accel = 1500
+    local accel = 2500 
     local maxSpeed = 600
 
-    -- Movimento suave
+    -- MOVIMENTAÇÃO (Teclado + Touch Swipe)
     if love.keyboard.isDown("right") or movingDir == 1 then
         vx = math.min(vx + accel * dt, maxSpeed)
     elseif love.keyboard.isDown("left") or movingDir == -1 then
         vx = math.max(vx - accel * dt, -maxSpeed)
     else
-        vx = vx * 0.92 -- Atrito para parar suavemente
+        vx = vx * 0.9 -- Atrito para não deslizar no gelo
     end
 
     player.body:setLinearVelocity(vx, vy)
 end
 
--- --- INPUTS (CHAMADOS PELO MAIN.LUA) ---
-
+-- 🔥 INTERAÇÃO TOUCH (Chamada pelo main.lua)
 function level.touchpressed(id, x, y)
     touchStartX = x
+    -- Tap na tela = Pulo
     if player.jumps < 2 then
         player.jumps = player.jumps + 1
-        local vx = player.body:getLinearVelocity()
-        player.body:setLinearVelocity(vx, -700) -- Pulo mais forte para alta res
+        local vx, vy = player.body:getLinearVelocity()
+        player.body:setLinearVelocity(vx, -750) 
     end
 end
 
 function level.touchmoved(id, x, y)
     if touchStartX then
         local dx = x - touchStartX
-        if dx > 40 then movingDir = 1 
-        elseif dx < -40 then movingDir = -1 
-        else movingDir = 0 end
+        -- Sensibilidade ajustada para telas de alta densidade
+        local threshold = 30 * scaleRetina
+        if dx > threshold then 
+            movingDir = 1 
+        elseif dx < -threshold then 
+            movingDir = -1 
+        else 
+            movingDir = 0 
+        end
     end
 end
 
@@ -91,36 +102,38 @@ function level.touchreleased(id, x, y)
 end
 
 function level.draw()
-    -- Pegar dimensões reais da tela (High DPI)
-    local screenW = love.graphics.getWidth()
-    local screenH = love.graphics.getHeight()
+    -- Pegamos o tamanho da tela para o fundo
+    local sw = love.graphics.getWidth()
+    local sh = love.graphics.getHeight()
 
-    -- 1. Desenhar Fundo esticado para preencher a tela
+    -- 1. DESENHAR FUNDO (Escalonado para preencher a tela nitidamente)
     love.graphics.setColor(1, 1, 1)
-    local scaleX = screenW / background:getWidth()
-    local scaleY = screenH / background:getHeight()
-    love.graphics.draw(background, 0, 0, 0, scaleX, scaleY)
+    local sx = sw / background:getWidth()
+    local sy = sh / background:getHeight()
+    love.graphics.draw(background, 0, 0, 0, sx, sy)
 
-    -- 2. Desenhar Chão (Simples)
-    love.graphics.setColor(0.1, 0.6, 0.2)
+    -- 2. DESENHAR CHÃO
+    love.graphics.setColor(0.15, 0.6, 0.25)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
-    -- 3. Desenhar Player com alta nitidez
-    -- DICA: Se playerImg for 512px, a escala 0.15 mantém ele nítido e pequeno
+    -- 3. DESENHAR PLAYER (O SEGREDO DA NITIDEZ)
     love.graphics.setColor(1, 1, 1)
     local px, py = player.body:getPosition()
-    local angle = player.body:getAngle()
+    local pAngle = player.body:getAngle()
     
-    -- Ajuste a escala conforme o tamanho da sua imagem original
-    local pScale = 0.25 
-    love.graphics.draw(playerImg, px, py, angle, pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
+    -- Se sua imagem bLob.png for 512px, o scale 0.15 a deixará super nítida
+    -- porque o iPhone usará muitos pixels reais para desenhar cada detalhe.
+    local playerScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
+    
+    love.graphics.draw(playerImg, px, py, pAngle, playerScale, playerScale, 
+                       playerImg:getWidth()/2, playerImg:getHeight()/2)
 end
 
 function level.keypressed(key)
     if (key == "up" or key == "space") and player.jumps < 2 then
         player.jumps = player.jumps + 1
-        local vx = player.body:getLinearVelocity()
-        player.body:setLinearVelocity(vx, -700)
+        local vx, vy = player.body:getLinearVelocity()
+        player.body:setLinearVelocity(vx, -750)
     end
 end
 
