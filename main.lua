@@ -4,7 +4,7 @@ local levelAtual = nil
 local selecionado = 1
 
 local levels = {
-    "level" -- Certifique-se que o arquivo se chama level.lua
+    "level1" -- Certifique-se que o arquivo se chama level.lua
 }
 
 function carregarLevel(index)
