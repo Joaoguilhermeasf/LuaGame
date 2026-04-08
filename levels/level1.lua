@@ -26,7 +26,7 @@ function level.load()
     -- Chão
     ground = {}
     ground.body = love.physics.newBody(world, 0, 550, "static")
-    ground.shape = love.physics.newRectangleShape(10000, 900)
+    ground.shape = love.physics.newRectangleShape(500, 900)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
@@ -121,7 +121,6 @@ function level.draw()
 
     love.graphics.setColor(1, 1, 1)
 
-    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
     local x = sw * 0.2
     local y = sh * 0.75
     local scale = (sw * 0.25) / bush:getWidth()
