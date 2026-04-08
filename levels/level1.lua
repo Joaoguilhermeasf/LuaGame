@@ -37,8 +37,8 @@ function level.load()
 
     ground2 = {}
     local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, sw*1.2, sh - ground2Height/2, "static")
-    ground2.shape = love.physics.newRectangleShape(sw*1.2, ground2Height)
+    ground2.body = love.physics.newBody(world, sw*1.3, sh - ground2Height/2, "static")
+    ground2.shape = love.physics.newRectangleShape(sw*1.3, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
 
