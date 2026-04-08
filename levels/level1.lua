@@ -12,6 +12,7 @@ function level.load()
     -- Assets
     background = love.graphics.newImage("assets/background.png")
     playerImg = love.graphics.newImage("assets/bLob.png")
+    lostMerpY = love.graphics.newImage("assets/LostMerpY.png")
     bush = love.graphics.newImage("assets/bush.png")
 
     -- Player
