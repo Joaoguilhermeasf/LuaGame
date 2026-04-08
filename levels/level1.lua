@@ -108,12 +108,12 @@ function level.draw()
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
-    love.graphics.draw(bush, x, y, 0, sw/bush:getWidth(), sh/bush:getHeight())
+    love.graphics.draw(bush, x, y, 0, sw/bush:getWidth()/2, sh/bush:getHeight()/2)
 
     love.graphics.setColor(1, 1, 1)
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
-    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/6, playerImg:getHeight()/6)
+    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
 
     love.graphics.pop()
 end
