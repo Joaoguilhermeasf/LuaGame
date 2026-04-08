@@ -37,7 +37,7 @@ function level.load()
 
     ground2 = {}
     local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, sw*1*5, sh - ground2Height/2, "static")
+    ground2.body = love.physics.newBody(world, sw*1.5, sh - ground2Height/2, "static")
     ground2.shape = love.physics.newRectangleShape(sw*1.5, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
@@ -146,7 +146,7 @@ function level.draw()
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
     love.graphics.setColor(0.8, 0.7, 0.6)
-    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground.shape:getPoints()))
+    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
    
     -- Player
     local px, py = player.body:getPosition()
