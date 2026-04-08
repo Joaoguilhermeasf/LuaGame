@@ -20,7 +20,7 @@ function level.load()
     player.body = love.physics.newBody(world, 400, 200, "dynamic")
     player.shape = love.physics.newCircleShape(30)
     player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.accel = 100
+    player.accel = 130
     player.jumps = 0
 
     -- Chão
@@ -72,7 +72,6 @@ function level.update(dt)
     camY = camY + (targetY - camY) * 5 * dt
 end
 
--- 🔥 TOQUE COM RESTRIÇÃO DE ALTURA
 function level.touchpressed(id, x, y)
     -- Guardamos o X para o movimento lateral (swipe)
     touchStartX = x
@@ -121,6 +120,14 @@ function level.draw()
 
 
     love.graphics.setColor(1, 1, 1)
+
+    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
+    local x = sw * 0.2
+    local y = sh * 0.75
+    local scale = (sw * 0.25) / bush:getWidth()
+
+    love.graphics.draw(bush, x, y, 0, scale, scale)
+
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
     love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
