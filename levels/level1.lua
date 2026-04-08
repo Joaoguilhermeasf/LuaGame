@@ -12,6 +12,7 @@ function level.load()
     -- Assets
     background = love.graphics.newImage("assets/background.png")
     playerImg = love.graphics.newImage("assets/bLob.png")
+    bush = love.graphics.newImage("assets/bush.png")
 
     -- Player
     player = {}
@@ -97,6 +98,8 @@ function level.draw()
     -- Fundo Estático
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
+
+    love.graphics.draw(bush, ground.shape:getPoints, 0, sw/bush:getWidth, sh/bush:getHeight)
 
     -- Início da Câmera
     love.graphics.push()
