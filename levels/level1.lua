@@ -19,7 +19,7 @@ function level.load()
     bush = love.graphics.newImage("assets/bush.png")
 
     -- Player
-    local spawnP = sh/2 - 60 -- acima do chão
+    local spawnP = sh/2 - 60
     player = {}
     player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
     player.shape = love.physics.newCircleShape(30)
@@ -27,7 +27,7 @@ function level.load()
     player.accel = 150
     player.jumps = 0
 
-    -- Chão (metade inferior da tela)
+    -- Chão 1
     ground = {}
     local groundHeight = sh / 2
     ground.body = love.physics.newBody(world, sw/2, sh - groundHeight/2, "static")
@@ -35,14 +35,18 @@ function level.load()
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
+    -- Chão 2 (com gap)
+    local gap = 200
+    local ground1RightEdge = sw/2 + (sw * 1.5) / 2
+    local ground2Width = sw
+    local ground2X = ground1RightEdge + gap + ground2Width / 2
+
     ground2 = {}
     local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, sw + sw/2, sh - ground2Height/2, "static")
-    ground2.shape = love.physics.newRectangleShape(sw, ground2Height)
+    ground2.body = love.physics.newBody(world, ground2X, sh - ground2Height/2, "static")
+    ground2.shape = love.physics.newRectangleShape(ground2Width, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
-
-
 
     -- Callback de colisão
     world:setCallbacks(function(a, b, coll)
@@ -94,7 +98,6 @@ end
 function level.touchpressed(id, x, y)
     touchStartX = x
     
-    -- Pulo na metade superior da tela
     if y < (love.graphics.getHeight() / 2) then
         if player.jumps < 2 then
             player.jumps = player.jumps + 1
@@ -133,21 +136,23 @@ function level.draw()
     love.graphics.push()
     love.graphics.translate(-camX, 0)
 
-     -- Bush
+    -- Bush
     local x = sw * 0.2
-    local y = sh*0.205
-    
+    local y = sh * 0.205
     local scale = (sw * 0.25) / bush:getWidth()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, x, y, 0, scale, scale)
 
-    -- Chão
+    -- Chão 1
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
+    -- Chão 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
-     love.graphics.setColor(1, 1, 1)
+
+    love.graphics.setColor(1, 1, 1)
+
     -- Player
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
