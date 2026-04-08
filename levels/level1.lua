@@ -1,7 +1,7 @@
 local level = {}
 
 -- Controles, Câmera e Resolução
-local touchStartX = nil
+local touches = {}
 local movingDir = 0 
 local camX, camY = 0, 0 
 
