@@ -19,7 +19,7 @@ function level.load()
     bush = love.graphics.newImage("assets/bush.png")
 
     -- Player
-    local spawnP = sh - 100
+    local spawnP = sh/2 - 60 -- acima do chão
     player = {}
     player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
     player.shape = love.physics.newCircleShape(30)
@@ -27,7 +27,7 @@ function level.load()
     player.accel = 130
     player.jumps = 0
 
-    -- Chão
+    -- Chão (metade inferior da tela)
     ground = {}
     local groundHeight = sh / 2
     ground.body = love.physics.newBody(world, sw/2, sh - groundHeight/2, "static")
@@ -35,6 +35,7 @@ function level.load()
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
+    -- Callback de colisão
     world:setCallbacks(function(a, b, coll)
         local dataA, dataB = a:getUserData(), b:getUserData()
         if (a == player.fixture and dataB and dataB.allowJump) or 
@@ -51,38 +52,40 @@ function level.update(dt)
     local vx, vy = player.body:getLinearVelocity()
     local speedMax = 500
     local accel = player.accel
+
     if love.keyboard.isDown("right") or movingDir == 1 then
-        if vx < 500 then
-            vx = vx + accel*dt
+        if vx < speedMax then
+            vx = vx + accel * dt
         else
-            vx = 500
+            vx = speedMax
         end
     elseif love.keyboard.isDown("left") or movingDir == -1 then
-        if vx > -500 then
-            vx = vx - accel*dt
+        if vx > -speedMax then
+            vx = vx - accel * dt
         else
-            vx = -500
+            vx = -speedMax
         end
     else
         vx = vx * 0.9
     end
+
     player.body:setLinearVelocity(vx, vy)
 
     -- Câmera Suave (Lerp)
     local px, py = player.body:getPosition()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
+
     local targetX = px - sw / 2
     local targetY = py - sh / 2
+
     camX = camX + (targetX - camX) * 5 * dt
     camY = camY + (targetY - camY) * 5 * dt
 end
 
 function level.touchpressed(id, x, y)
-    -- Guardamos o X para o movimento lateral (swipe)
     touchStartX = x
     
-    -- Verificamos se o toque foi na metade superior da tela
-    -- love.graphics.getHeight() / 2 define a linha do horizonte do toque
+    -- Pulo na metade superior da tela
     if y < (love.graphics.getHeight() / 2) then
         if player.jumps < 2 then
             player.jumps = player.jumps + 1
@@ -95,10 +98,13 @@ end
 function level.touchmoved(id, x, y)
     if touchStartX then
         local dx = x - touchStartX
-        -- Movimentação lateral funciona em qualquer altura da tela
-        if dx > 40 then movingDir = 1 
-        elseif dx < -40 then movingDir = -1 
-        else movingDir = 0 end
+        if dx > 40 then 
+            movingDir = 1 
+        elseif dx < -40 then 
+            movingDir = -1 
+        else 
+            movingDir = 0 
+        end
     end
 end
 
@@ -110,30 +116,26 @@ end
 function level.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
 
-    -- Fundo Estático
+    -- Fundo (sem câmera)
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
-    -- Início da Câmera
+    -- Câmera
     love.graphics.push()
     love.graphics.translate(-camX, -camY)
 
-    -- Desenho do Mundo
-    love.graphics.draw(bush, x, y, 0, sw/bush:getWidth()/2, sh/bush:getHeight()/2)
+    -- Chão
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
-
-    love.graphics.setColor(1, 1, 1)
-
+    -- Bush
     local x = sw * 0.2
     local y = sh * 0.75
     local scale = (sw * 0.25) / bush:getWidth()
-
-love.graphics.draw(bush, x, y, 0, scale, scale)
-
+    love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, x, y, 0, scale, scale)
 
+    -- Player
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
     love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
