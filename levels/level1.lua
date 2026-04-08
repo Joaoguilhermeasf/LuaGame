@@ -25,7 +25,7 @@ function level.load()
     -- Chão
     ground = {}
     ground.body = love.physics.newBody(world, 0, 550, "static")
-    ground.shape = love.physics.newRectangleShape(10000, 100)
+    ground.shape = love.physics.newRectangleShape(10000, 900)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
