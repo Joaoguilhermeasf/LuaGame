@@ -31,9 +31,18 @@ function level.load()
     ground = {}
     local groundHeight = sh / 2
     ground.body = love.physics.newBody(world, sw/2, sh - groundHeight/2, "static")
-    ground.shape = love.physics.newRectangleShape(sw, groundHeight)
+    ground.shape = love.physics.newRectangleShape(sw*2, groundHeight)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
+
+    ground2 = {}
+    local ground2Height = sh / 2
+    ground2.body = love.physics.newBody(world, sw*2.5, sh - ground2Height/2, "static")
+    ground2.shape = love.physics.newRectangleShape(sw*2, ground2Height)
+    ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
+    ground2.fixture:setUserData({allowJump = true})
+
+
 
     -- Callback de colisão
     world:setCallbacks(function(a, b, coll)
@@ -124,17 +133,21 @@ function level.draw()
     love.graphics.push()
     love.graphics.translate(-camX, -camY)
 
-    -- Chão
-    love.graphics.setColor(0.8, 0.7, 0.6)
-    love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
-
-    -- Bush
+     -- Bush
     local x = sw * 0.2
     local y = sh*0.205
+    
     local scale = (sw * 0.25) / bush:getWidth()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, x, y, 0, scale, scale)
 
+    -- Chão
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
+
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground.shape:getPoints()))
+   
     -- Player
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
