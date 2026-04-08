@@ -20,7 +20,7 @@ function level.load()
     player.body = love.physics.newBody(world, 400, 200, "dynamic")
     player.shape = love.physics.newCircleShape(30)
     player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.accel = 200
+    player.accel = 100
     player.jumps = 0
 
     -- Chão
