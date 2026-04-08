@@ -96,33 +96,40 @@ function level.update(dt)
 end
 
 function level.touchpressed(id, x, y)
-    touchStartX = x
-    
-    if y < (love.graphics.getHeight() / 2) then
+    local sw = love.graphics.getWidth()
+
+    if x > sw / 2 then
+        -- Metade direita: controle de movimento
+        touches[id] = {x = x, side = "move"}
+    else
+        -- Metade esquerda: pulo
+        touches[id] = {x = x, side = "jump"}
         if player.jumps < 2 then
             player.jumps = player.jumps + 1
             local vx, vy = player.body:getLinearVelocity()
-            player.body:setLinearVelocity(vx, -650) 
+            player.body:setLinearVelocity(vx, -650)
         end
     end
 end
 
 function level.touchmoved(id, x, y)
-    if touchStartX then
-        local dx = x - touchStartX
-        if dx > 40 then 
-            movingDir = 1 
-        elseif dx < -40 then 
-            movingDir = -1 
-        else 
-            movingDir = 0 
+    if touches[id] and touches[id].side == "move" then
+        local dx = x - touches[id].x
+        if dx > 40 then
+            movingDir = 1
+        elseif dx < -40 then
+            movingDir = -1
+        else
+            movingDir = 0
         end
     end
 end
 
 function level.touchreleased(id, x, y)
-    touchStartX = nil
-    movingDir = 0
+    touches[id] = nil
+    if next(touches) == nil then
+        movingDir = 0
+    end
 end
 
 function level.draw()
