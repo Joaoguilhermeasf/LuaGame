@@ -8,6 +8,9 @@ local camX, camY = 0, 0
 function level.load()
     love.graphics.setDefaultFilter("linear", "linear", 16)
     world = love.physics.newWorld(0, 1000, true)
+
+    local sw = love.graphics.getWidth()
+    local sh = love.graphics.getHeight()
     
     -- Assets
     background = love.graphics.newImage("assets/background.png")
@@ -26,7 +29,7 @@ function level.load()
     -- Chão
     ground = {}
     ground.body = love.physics.newBody(world, 0, 550, "static")
-    ground.shape = love.physics.newRectangleShape(love.graphics.getWidth(), 900)
+    ground.shape = love.physics.newRectangleShape(sw, 900)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
