@@ -131,7 +131,7 @@ function level.draw()
 
     -- Câmera
     love.graphics.push()
-    love.graphics.translate(-camX, -camY)
+    love.graphics.translate(-camX, 0)
 
      -- Bush
     local x = sw * 0.2
@@ -147,7 +147,7 @@ function level.draw()
 
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
-   
+     love.graphics.setColor(1, 1, 1)
     -- Player
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
