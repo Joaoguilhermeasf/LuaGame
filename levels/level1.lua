@@ -113,7 +113,7 @@ function level.draw()
     love.graphics.setColor(1, 1, 1)
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
-    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
+    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/6, playerImg:getHeight()/6)
 
     love.graphics.pop()
 end
