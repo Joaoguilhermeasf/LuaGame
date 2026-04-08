@@ -24,7 +24,7 @@ function level.load()
     player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
     player.shape = love.physics.newCircleShape(30)
     player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.accel = 130
+    player.accel = 150
     player.jumps = 0
 
     -- Chão (metade inferior da tela)
@@ -37,7 +37,7 @@ function level.load()
 
     ground2 = {}
     local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, sw*1.3, sh - ground2Height/2, "static")
+    ground2.body = love.physics.newBody(world, (sw + sw*0.3), sh - ground2Height/2, "static")
     ground2.shape = love.physics.newRectangleShape(sw*1.3, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
