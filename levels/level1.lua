@@ -30,7 +30,7 @@ function level.load()
     -- Chão 1
     ground = {}
     local groundHeight = sh / 2
-    ground.body = love.physics.newBody(world, sw/2, sh - groundHeight/2, "static")
+    ground.body = love.physics.newBody(world, sw/2, sh - groundHeight*0.75, "static")
     ground.shape = love.physics.newRectangleShape(sw*1.5, groundHeight)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
@@ -43,7 +43,7 @@ function level.load()
 
     ground2 = {}
     local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, ground2X, sh - ground2Height/2, "static")
+    ground2.body = love.physics.newBody(world, ground2X, sh - groundHeight*0.75, "static")
     ground2.shape = love.physics.newRectangleShape(ground2Width, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
