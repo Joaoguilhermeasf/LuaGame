@@ -100,7 +100,7 @@ function level.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
-    love.graphics.draw(bush, ground.shape:getPoints, 0, sw/bush:getWidth, sh/bush:getHeight)
+    love.graphics.draw(bush, ground.shape:getPoints(), 0, sw/bush:getWidth(), sh/bush:getHeight())
 
     -- Início da Câmera
     love.graphics.push()
