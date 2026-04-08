@@ -20,6 +20,7 @@ function level.load()
     player.body = love.physics.newBody(world, 400, 200, "dynamic")
     player.shape = love.physics.newCircleShape(30)
     player.fixture = love.physics.newFixture(player.body, player.shape)
+    player.accel = 200
     player.jumps = 0
 
     -- Chão
@@ -43,11 +44,20 @@ function level.update(dt)
     
     -- Movimentação do Player
     local vx, vy = player.body:getLinearVelocity()
-    local speed = 500
+    local speedMax = 500
+    local accel = player.accel
     if love.keyboard.isDown("right") or movingDir == 1 then
-        vx = speed
+        if vx < 500 then
+            vx = vx + accel*dt
+        else
+            vx = 500
+        end
     elseif love.keyboard.isDown("left") or movingDir == -1 then
-        vx = -speed
+        if vx > -500 then
+            vx = vx - accel*dt
+        else
+            vx = -500
+        end
     else
         vx = vx * 0.9
     end
