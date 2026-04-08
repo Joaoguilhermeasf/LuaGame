@@ -1,8 +1,8 @@
 local level = {}
 
 -- Controles, Câmera e Resolução
-local touchStartX = nil
-local movingDir = 0 
+local touches = {}
+local movingDir = 0
 local camX, camY = 0, 0 
 
 function level.load()
@@ -96,33 +96,37 @@ function level.update(dt)
 end
 
 function level.touchpressed(id, x, y)
-    touchStartX = x
-    
+    touches[id] = x  -- salva cada dedo separado
+
     if y < (love.graphics.getHeight() / 2) then
         if player.jumps < 2 then
             player.jumps = player.jumps + 1
             local vx, vy = player.body:getLinearVelocity()
-            player.body:setLinearVelocity(vx, -650) 
+            player.body:setLinearVelocity(vx, -650)
         end
     end
 end
 
 function level.touchmoved(id, x, y)
-    if touchStartX then
-        local dx = x - touchStartX
-        if dx > 40 then 
-            movingDir = 1 
-        elseif dx < -40 then 
-            movingDir = -1 
-        else 
-            movingDir = 0 
+    if touches[id] then
+        local dx = x - touches[id]
+        if dx > 40 then
+            movingDir = 1
+        elseif dx < -40 then
+            movingDir = -1
+        else
+            movingDir = 0
         end
     end
 end
 
 function level.touchreleased(id, x, y)
-    touchStartX = nil
-    movingDir = 0
+    touches[id] = nil  -- remove só o dedo que saiu
+
+    -- só zera o movimento se não tiver mais nenhum dedo na tela
+    if next(touches) == nil then
+        movingDir = 0
+    end
 end
 
 function level.draw()
