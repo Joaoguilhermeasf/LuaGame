@@ -19,7 +19,7 @@ function level.load()
     bush = love.graphics.newImage("assets/bush.png")
 
     -- Player
-    local spawnP = sh - 10
+    local spawnP = sh - 100
     player = {}
     player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
     player.shape = love.physics.newCircleShape(30)
@@ -29,8 +29,9 @@ function level.load()
 
     -- Chão
     ground = {}
-    ground.body = love.physics.newBody(world, sw/2, sh/3, "static")
-    ground.shape = love.physics.newRectangleShape(sw, sh)
+    local groundHeight = sh / 2
+    ground.body = love.physics.newBody(world, sw/2, sh - groundHeight/2, "static")
+    ground.shape = love.physics.newRectangleShape(sw, groundHeight)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
@@ -128,6 +129,8 @@ function level.draw()
     local x = sw * 0.2
     local y = sh * 0.75
     local scale = (sw * 0.25) / bush:getWidth()
+
+love.graphics.draw(bush, x, y, 0, scale, scale)
 
     love.graphics.draw(bush, x, y, 0, scale, scale)
 
