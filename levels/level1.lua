@@ -148,7 +148,7 @@ function level.draw()
      -- Bush
     local scale = (sw * 0.25) / bush:getWidth()
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(bush, sw/2, sh*0.57, 0, scale, scale)
+    love.graphics.draw(bush, sw/2, sh*0.6, 0, scale, scale)
 
     -- Chão 1
     love.graphics.setColor(0.8, 0.7, 0.6)
