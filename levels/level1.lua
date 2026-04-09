@@ -8,7 +8,7 @@ local sw = love.graphics.getWidth() --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
 local checkpointX = sw/2
-local checkpointY = sh/2
+local checkpointY = (sh/2) * 1.6
 
 function level.load()
     love.graphics.setDefaultFilter("linear","linear",64) -- FILTRO DE IMAGEM COM BLUR
@@ -22,9 +22,8 @@ function level.load()
     bush = love.graphics.newImage("/assets/bush.png")
 
      -- PLAYER
-    local spawnP = sh/2 - 60
     player = {}
-    player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
+    player.body = love.physics.newBody(world, checkpointX, checkpointY, "dynamic")
     player.shape = love.physics.newCircleShape(30)
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
@@ -32,11 +31,11 @@ function level.load()
 
     -- TEXTO
     font = love.graphics.newFont(48)
-    welcomeText = love.graphics.newText(font, "Move with the arrow keys!")
+    welcomeText = love.graphics.newText(font, "Slide the left side of your screen to move!")
     textX = sw/2
     textY = sh/2
     fade = 0
-    fadeVel = 0.8
+    fadeVel = 0.5
 
     -- CHÃO
     ground = {}
@@ -60,9 +59,10 @@ function level.load()
     ground2.fixture:setUserData({allowJump = true})
 
     -- WALL
-    wall = love.physics.newBody(world, sw*(-1), sh/2, "static")
-    wallShape = love.physics.newRectangleShape(20, 1000)
-    wallFixture = love.physics.newFixture(wall, wallShape)
+    wall ={}
+    wall.body = love.physics.newBody(world, -sw/2, sh/2, "static")
+    wall.shape = love.physics.newRectangleShape(sw, sh)
+    wall.fixture = love.physics.newFixture(wall.body, wall.shape)
 
 
     -- CALLBACKS
@@ -79,11 +79,16 @@ function playerSpawn(x,y)
     player.body:setPosition(x,y)
     player.body:setLinearVelocity(0, 0)
     player.jumps = 0
-    camX, camY = x, y
 end
 
 function level.update(dt)
     world:update(dt)
+    local count = 0;
+    fade = fade + fadeVel * dt
+    if fade > 1 and count < 200 then 
+        fade = 1 
+        count = count+1
+    end
 
     local x,y = player.body:getPosition()
 
@@ -124,6 +129,11 @@ function level.keypressed(key)
         player.body:setLinearVelocity(vx, -500)
 
     end
+
+    if key == "r" then
+        playerSpawn(checkpointX, checkpointY)
+    end
+
 end
 
 function level.touchpressed(id, x, y)
@@ -164,13 +174,20 @@ end
 function level.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
 
+     love.graphics.setColor(1, 1, 1, 0.5)
+    love.graphics.rectangle("fill",0,0,sw/2,sh)
+
     -- Fundo (sem câmera)
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
+   
+
     -- Câmera
     love.graphics.push()
     love.graphics.translate(-camX, 0)
+
+    
 
 
      -- Bush
@@ -187,8 +204,19 @@ function level.draw()
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
 
-   
+    love.graphics.setColor(0.8,0.7,0.6)
+    love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
 
+
+    -- define cor com alpha (fade)
+love.graphics.setColor(1, 1, 1, fade)
+
+    -- desenha centralizado
+    love.graphics.draw(
+        welcomeText,
+        textX - welcomeText:getWidth()/2,
+        textY - welcomeText:getHeight()/2
+    )
 
     love.graphics.setColor(1, 1, 1)
 

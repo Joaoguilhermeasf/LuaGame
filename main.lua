@@ -1,74 +1,95 @@
--- Estado do jogo
-local estado = "menu"  -- "menu" ou "jogo"
+local estado = "menu"   -- PODE SER MENU OU JOGO
 local levelAtual = nil
+local selecionado = 1
 
--- Lista de fases
 local levels = {
     "levels.level1"
 }
 
--- Controle do menu
-local selecionado = 1
-
--- Carrega o menu/fase
-function carregarLevel(index)
-    -- Recarrega se já tinha carregado antes
-    package.loaded[levels[index]] = nil
-    levelAtual = require(levels[index])
-    levelAtual.load()
+function loadLevel(index)
+    
+    package.loaded[levels[index]] = nil -- SERVE PARA LIMPAR O CACHE ANTES DE INICIAR A FASE
+    
+    levelAtual = require(levels[index]) --LEVE ATUAL RECEBE O LEVEL DA LISTA
+    
+    if levelAtual and levelAtual.load then
+        levelAtual.load()
+    end
 end
 
--- LOVE LOAD
 function love.load()
-    -- nada aqui, menu aparece automaticamente
+    love.graphics.setBackgroundColor(0.1, 0.1, 0.1)
 end
 
--- LOVE UPDATE
 function love.update(dt)
-    if estado == "jogo" and levelAtual then
+    if estado == "jogo" and levelAtual and levelAtual.update then
         levelAtual.update(dt)
     end
 end
 
--- LOVE DRAW
 function love.draw()
-    if estado == "menu" then
-        love.graphics.print("SELECIONE UMA FASE", 300, 100)
+    local largura = love.graphics.getWidth()
+    local altura = love.graphics.getHeight()
 
-        for i, lvl in ipairs(levels) do
-            if i == selecionado then
-                love.graphics.print("> Fase " .. i, 320, 150 + i*40)
-            else
-                love.graphics.print("Fase " .. i, 340, 150 + i*40)
-            end
-        end
+    if estado == "menu" then
+        love.graphics.setColor(1, 1, 1)
+
+        love.graphics.printf("PRESSIONE ENTER OU TOQUE PARA COMEÇAR", 0, altura/2, largura, "center")
 
     elseif estado == "jogo" and levelAtual then
         levelAtual.draw()
     end
 end
 
--- LOVE KEYPRESSED
-function love.keypressed(key)
+function love.keypressed(key) --imput do teclado
+
     if estado == "menu" then
-        if key == "down" then
-            selecionado = selecionado % #levels + 1
-        elseif key == "up" then
-            selecionado = (selecionado - 2) % #levels + 1
-        elseif key == "return" then
-            carregarLevel(selecionado)
+        if key == "return" then
+            loadLevel(selecionado)
             estado = "jogo"
         elseif key == "escape" then
             love.event.quit()
         end
-    elseif estado == "jogo" then
-        if levelAtual.keypressed then
+    end
+
+    if estado == "jogo" then
+        if levelAtual and levelAtual.keypressed then
             levelAtual.keypressed(key)
         end
-        -- Voltar para o menu
+
+        -- voltar pro menu
         if key == "escape" then
             estado = "menu"
             levelAtual = nil
         end
+    end
+end
+
+-- ==============================
+-- INPUT: TOQUE (CELULAR)
+-- ==============================
+function love.touchpressed(id, x, y)
+
+    -- MENU
+    if estado == "menu" then
+        loadLevel(selecionado)
+        estado = "jogo"
+    end
+
+    -- JOGO
+    if estado == "jogo" and levelAtual and levelAtual.touchpressed then
+        levelAtual.touchpressed(id, x, y)
+    end
+end
+
+function love.touchmoved(id, x, y, dx, dy)
+    if estado == "jogo" and levelAtual and levelAtual.touchmoved then
+        levelAtual.touchmoved(id, x, y, dx, dy)
+    end
+end
+
+function love.touchreleased(id, x, y)
+    if estado == "jogo" and levelAtual and levelAtual.touchreleased then
+        levelAtual.touchreleased(id, x, y)
     end
 end
