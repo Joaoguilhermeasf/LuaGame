@@ -143,13 +143,8 @@ function level.draw()
     love.graphics.push()
     love.graphics.translate(-camX, 0)
 
-    -- Bush
-    local x = sw * 0.2
-    local y = sh * 0.205
-    local scale = (sw * 0.25) / bush:getWidth()
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(bush, x, y, 0, scale, scale)
 
+   
     -- Chão 1
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
@@ -157,6 +152,13 @@ function level.draw()
     -- Chão 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
+
+     -- Bush
+    local xB, yb = ground.body:getWorldPoints(ground.shape:getPoints())
+    local scale = (sw * 0.25) / bush:getWidth()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(bush, xB*0.8, y/3, 0, scale, scale)
+
 
     love.graphics.setColor(1, 1, 1)
 
