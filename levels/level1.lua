@@ -5,12 +5,13 @@ local touches = {}
 local movingDir = 0 
 local camX, camY = 0, 0 
 
+    local sw = love.graphics.getWidth()
+    local sh = love.graphics.getHeight()
+
 function level.load()
     love.graphics.setDefaultFilter("linear", "linear", 64)
     world = love.physics.newWorld(0, 1000, true)
 
-    local sw = love.graphics.getWidth()
-    local sh = love.graphics.getHeight()
     
     -- Assets
     background = love.graphics.newImage("assets/background.png")
@@ -154,11 +155,9 @@ function level.draw()
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
 
      -- Bush
-    local yB = love.graphics.getHeight()
     local scale = (sw * 0.25) / bush:getWidth()
-    yB = yB/2
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(bush, xB, yB, 0, scale, scale)
+    love.graphics.draw(bush, xB, sh/2, 0, scale, scale)
 
 
     love.graphics.setColor(1, 1, 1)
