@@ -156,8 +156,10 @@ function level.draw()
      -- Bush
     local xB, yB = ground.body:getWorldPoints(ground.shape:getPoints())
     local scale = (sw * 0.25) / bush:getWidth()
+    xB = xB * 0.8
+    yB = yB/3
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(bush, xB*0.8, yB/3, 0, scale, scale)
+    love.graphics.draw(bush, xB, yB, 0, scale, scale)
 
 
     love.graphics.setColor(1, 1, 1)
