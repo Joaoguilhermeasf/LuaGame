@@ -6,7 +6,7 @@ local movingDir = 0
 local camX, camY = 0, 0 
 
 function level.load()
-    love.graphics.setDefaultFilter("linear", "linear", 16)
+    love.graphics.setDefaultFilter("linear", "linear", 64)
     world = love.physics.newWorld(0, 1000, true)
 
     local sw = love.graphics.getWidth()
