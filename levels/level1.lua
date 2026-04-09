@@ -154,9 +154,9 @@ function level.draw()
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
 
      -- Bush
-    local xB, yB = ground.body:getPosition()
+    local yB = love.graphics.getHeight()
     local scale = (sw * 0.25) / bush:getWidth()
-    
+    yB = yB/2
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, xB, yB, 0, scale, scale)
 
