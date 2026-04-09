@@ -1,151 +1,116 @@
 local level = {}
 
+local touches = {}
+local movingDir = 0
+local camX, camY = 0,0
+
+local sw = love.graphics.getWidth() --LARGURA DA TELA
+local sh = love.graphics.getHeight() --ALTURA DA TELA
+
+local checkpointX = sw/2
+local checkpointY = sh/2
+
 function level.load()
+    love.graphics.setDefaultFilter("linear","linear",64) -- FILTRO DE IMAGEM COM BLUR
     world = love.physics.newWorld(0, 1000, true)
     
+    
+    --ASSETS
     background = love.graphics.newImage("/assets/background.png")
+    playerImg = love.graphics.newImage("/assets/bLob.png")
+    lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
+    bush = love.graphics.newImage("/assets/bush.png")
 
-    -- SCENARIO ASSETS
-    bush1 = love.graphics.newImage("/assets/bush.png")
+     -- PLAYER
+    local spawnP = sh/2 - 60
+    player = {}
+    player.body = love.physics.newBody(world, sw/2, spawnP, "dynamic")
+    player.shape = love.physics.newCircleShape(30)
+    player.fixture = love.physics.newFixture(player.body, player.shape)
+    player.accel = 200
+    player.jumps = 0
 
-    -- GROUND
-    ground = love.physics.newBody(world, 0, 400, "static")
-    groundShape = love.physics.newRectangleShape(0, 390, 800, 800 )
-    groundFixture = love.physics.newFixture(ground, groundShape)
+    -- TEXTO
+    font = love.graphics.newFont(48)
+    welcomeText = love.graphics.newText(font, "Move with the arrow keys!")
+    textX = sw/2
+    textY = sh/2
+    fade = 0
+    fadeVel = 0.8
 
-    ground2 = love.physics.newBody(world, 1200, 400, "static")
-    ground2Shape = love.physics.newRectangleShape(0, 390, 800, 800 )
-    ground2Fixture = love.physics.newFixture(ground2, ground2Shape)
+    -- CHÃO
+    ground = {}
+    local groundHeight = sh / 2
+    ground.body = love.physics.newBody(world, sw/2, sh + groundHeight*0.2, "static")
+    ground.shape = love.physics.newRectangleShape(sw*1.5, groundHeight)
+    ground.fixture = love.physics.newFixture(ground.body, ground.shape)
+    ground.fixture:setUserData({allowJump = true})
 
-    wall = love.physics.newBody(world, -200, 0, "static")
+    --CHÃO(2)
+    local gap = 200
+    local ground1RightEdge = sw/2 + (sw * 1.5) / 2 -- PEGA O CANTO DIREITO DO CHÃO
+    local ground2Width = sw
+    local ground2X = ground1RightEdge + gap + ground2Width / 2
+
+    ground2 = {}
+    local ground2Height = sh / 2
+    ground2.body = love.physics.newBody(world, ground2X, sh + groundHeight*0.2, "static")
+    ground2.shape = love.physics.newRectangleShape(ground2Width, ground2Height)
+    ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
+    ground2.fixture:setUserData({allowJump = true})
+
+    -- WALL
+    wall = love.physics.newBody(world, sw*(-1), sh/2, "static")
     wallShape = love.physics.newRectangleShape(20, 1000)
     wallFixture = love.physics.newFixture(wall, wallShape)
 
-    -- PLAYER
-    player = {}
-    local px, py = ground:getPosition()
-    player.body = love.physics.newBody(world, px + 10, py - 36, "dynamic")
-    player.shape = love.physics.newCircleShape(25)
-    player.image = love.graphics.newImage("/assets/bLob.png")
-    player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.fixture:setFriction(1)
-    player.fixture:setRestitution(0.3)
-    player.grounded = false
-    player.jumps = 0
-
-    -- BALLS 
-    balls = {}
-    local lostImage = love.graphics.newImage("/assets/LostMerpY.png")
-    local foundImage = love.graphics.newImage("/assets/merpY.png")
-
-    local spawnPositions = {
-        {x = 120, y = 380}
-    }
-
-    for _, pos in ipairs(spawnPositions) do
-        local num = math.random(5, 30)
-        local b = {}
-        b.body = love.physics.newBody(world, pos.x, pos.y, "dynamic")
-        b.shape = love.physics.newCircleShape(num)
-        b.image = lostImage
-        b.foundImage = foundImage
-        b.fixture = love.physics.newFixture(b.body, b.shape)
-        b.fixture:setDensity(5)
-        b.body:resetMassData()
-        b.active = false
-        table.insert(balls, b)
-    end
-
-    -- ARC
-    local radius = 200
-    local segments = 30
-    local startAngle = 0
-    local endAngle = math.pi
-
-    points = {}
-    for i = 0, segments do
-        local angle = startAngle + (endAngle - startAngle) * (i / segments)
-        table.insert(points, math.cos(angle) * radius)
-        table.insert(points, math.sin(angle) * radius)
-    end
-
-    arcBody = love.physics.newBody(world, 600, 400, "static")
-    arcShape = love.physics.newChainShape(false, unpack(points))
-    arcFixture = love.physics.newFixture(arcBody, arcShape)
 
     -- CALLBACKS
-    world:setCallbacks(
-        function(a, b, coll)
-            -- PLAYER TOUCHED THE GROUND
-            if a == player.fixture or b == player.fixture then
-                if (a == groundFixture or a == ground2Fixture) or (b == groundFixture or b == ground2Fixture) then
-                    player.grounded = true
-                    player.jumps = 0
-                end
-            end
-
-            -- PLAYER TOUCHED THE BALL
-            for _, ball in ipairs(balls) do
-                if not ball.active then
-                    if (a == player.fixture and b == ball.fixture) or
-                       (b == player.fixture and a == ball.fixture) then
-                        ball.active = true
-                        ball.image = ball.foundImage
-                    end
-                end
-            end
-        end,
-        function(a, b, coll)
-            if a == player.fixture or b == player.fixture then
-                player.grounded = false
-            end
+   world:setCallbacks(function(a, b, coll)
+        local dataA, dataB = a:getUserData(), b:getUserData()
+        if (a == player.fixture and dataB and dataB.allowJump) or 
+           (b == player.fixture and dataA and dataA.allowJump) then
+            player.jumps = 0
         end
-    )
+    end)
+end
+
+function playerSpawn(x,y)
+    player.body:setPosition(x,y)
+    player.body:setLinearVelocity(0, 0)
+    player.jumps = 0
+    camX, camY = x, y
 end
 
 function level.update(dt)
     world:update(dt)
 
+    local x,y = player.body:getPosition()
+
+    if y > sh then
+        playerSpawn(checkpointX,checkpointY)
+    end
+
     local vx, vy = player.body:getLinearVelocity()
+    local speedMax = 500
+    local accel = player.accel
 
-    -- MOVIMENTO PLAYER
-    if love.keyboard.isDown("right") then
-        player.body:setLinearVelocity(350, vy)
-    elseif love.keyboard.isDown("left") then
-        player.body:setLinearVelocity(-350, vy)
+    if love.keyboard.isDown("right") or movingDir == 1 then
+        if vx < speedMax then vx = vx + accel * dt else vx = speedMax end
+    elseif love.keyboard.isDown("left") or movingDir == -1 then
+        if vx > -speedMax then vx = vx - accel * dt else vx = -speedMax end
     else
-        player.body:setLinearVelocity(0, vy)
+        vx = vx * 0.95
     end
 
-    -- RESTART
-    if love.keyboard.isDown("r") then
-        level.load()
-    end
+    player.body:setLinearVelocity(vx, vy)
 
-    -- SBALL FOLLOWING PLAYER
     local px, py = player.body:getPosition()
-
-    for _, ball in ipairs(balls) do
-        if ball.active then
-            local bx, by = ball.body:getPosition()
-            local vx_ball, vy_ball = ball.body:getLinearVelocity()
-
-            if bx > px + 100 then
-                vx_ball = -200
-            elseif bx < px - 100 then
-                vx_ball = 200
-            else
-                vx_ball = 0
-            end
-
-            ball.body:setLinearVelocity(vx_ball, vy_ball)
-        end
-    end
-
-    -- RESET TROUGH FALLING FROM THE MAP
-    if vy > love.graphics.getHeight() then
-        level.load()
-    end
+    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
+    local targetX = px - sw / 2
+    local targetY = py - sh / 2
+    camX = camX + (targetX - camX) * 5 * dt
+    camY = camY + (targetY - camY) * 5 * dt
 end
 
 function level.keypressed(key)
@@ -158,70 +123,81 @@ function level.keypressed(key)
 
         player.body:setLinearVelocity(vx, -500)
 
-        for _, ball in ipairs(balls) do
-            if ball.active then
-                ball.body:setLinearVelocity(vx, -400)
-            end
+    end
+end
+
+function level.touchpressed(id, x, y)
+    local sw = love.graphics.getWidth()
+
+    if x < sw / 2 then --SÓ PEGA O MOVIMENTO NA ESQUERDA DA TELA
+        touches[id] = {x = x, side = "move"}
+    else -- SÓ PEGA O MOVIMENTO NA PARTE DIREITA DA TELA
+        touches[id] = {x = x, side = "jump"}
+        if player.jumps < 2 then
+            player.jumps = player.jumps + 1
+            local vx, vy = player.body:getLinearVelocity()
+            player.body:setLinearVelocity(vx, -650)
         end
     end
 end
 
-function level.draw()
-
-    love.graphics.draw(background, 0, 0)
-
-    local x, y = player.body:getPosition()
-    local r = player.shape:getRadius()
-
-    love.graphics.push()
-    love.graphics.translate(
-        love.graphics.getWidth() / 2 - x,
-        love.graphics.getHeight() / 2 - y
-    )
-
-    -- BUSH DRAW
-    love.graphics.draw(bush1, 900, 120, 0, 0.5, 0.5)
-
-
-
-    -- PLAYER
-    local scale = (r * 4) / player.image:getWidth()
-    local angle = player.body:getAngle() / 3
-    local ox = player.image:getWidth() / 2
-    local oy = player.image:getHeight() / 2
-    love.graphics.draw(player.image, x, y - 22, angle, scale, scale, ox, oy)
-
-    -- BALLS
-    for _, ball in ipairs(balls) do
-        local bx, by = ball.body:getPosition()
-        local br = ball.shape:getRadius()
-        local ball_angle = ball.body:getAngle()
-        local ball_ox = ball.image:getWidth() / 2
-        local ball_oy = ball.image:getHeight() / 2
-        local ball_scale = (br * 2) / ball.image:getWidth()
-        love.graphics.draw(ball.image, bx, by, ball_angle, ball_scale, ball_scale, ball_ox, ball_oy)
+function level.touchmoved(id, x, y)
+    if touches[id] and touches[id].side == "move" then
+        local dx = x - touches[id].x
+        if dx > 40 then
+            movingDir = 1
+        elseif dx < -40 then
+            movingDir = -1
+        else
+            movingDir = 0
+        end
     end
+end
 
-    -- GROUND
-    local groundX, groundY = ground:getPosition()
-    love.graphics.rectangle("fill", groundX - 400, groundY - 10, 800, 800)
+function level.touchreleased(id, x, y)
+    touches[id] = nil
+    if next(touches) == nil then
+        movingDir = 0
+    end
+end
 
-    local ground2X, ground2Y = ground2:getPosition()
-    love.graphics.rectangle("fill", ground2X - 400, ground2Y - 10, 800, 800)
+function level.draw()
+    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
 
-    local wallX, wallY = wall:getPosition()
-    love.graphics.rectangle("fill", wallX - 1030, wallY - 500, 1000, 2500)
+    -- Fundo (sem câmera)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
-    -- ARC
-    local ax, ay = arcBody:getPosition()
+    -- Câmera
     love.graphics.push()
-    love.graphics.translate(ax, ay)
-    love.graphics.line(points)
-    love.graphics.pop()
-  
-    love.graphics.pop()
+    love.graphics.translate(-camX, 0)
 
-  
+
+     -- Bush
+    local bs = sw*0.25
+    local scale = bs / bush:getWidth()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(bush, sw/2, sh*0.65, 0, scale, scale)
+
+    -- Chão 1
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
+
+    -- Chão 2
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
+
+   
+
+
+    love.graphics.setColor(1, 1, 1)
+
+    -- Player
+    local px, py = player.body:getPosition()
+    local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
+    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
+
+    love.graphics.pop()
 end
 
 return level
