@@ -83,15 +83,21 @@ end
 
 function level.update(dt)
     world:update(dt)
-    local count = 0;
+
+   
+
+    local x, y = player.body:getPosition()
+
+    if math.abs(x - textX) < sw/5 then
     fade = fade + fadeVel * dt
-    if fade > 1 and count < 200 then 
-        fade = 1 
-        count = count+1
-    end
+else
+    fade = fade - fadeVel * dt
+end
 
-    local x,y = player.body:getPosition()
-
+-- clamp direto (sem variável nova)
+if fade > 1 then fade = 1 end
+if fade < 0 then fade = 0 end
+        
     if y > sh then
         playerSpawn(checkpointX,checkpointY)
     end
@@ -173,8 +179,8 @@ end
 
 function level.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
-
-     love.graphics.setColor(1, 1, 1, 0.5)
+    --GUIDE
+    love.graphics.setColor(1, 1, 1, 0.5)
     love.graphics.rectangle("fill",0,0,sw/2,sh)
 
     -- Fundo (sem câmera)
@@ -186,9 +192,6 @@ function level.draw()
     -- Câmera
     love.graphics.push()
     love.graphics.translate(-camX, 0)
-
-    
-
 
      -- Bush
     local bs = sw*0.25
