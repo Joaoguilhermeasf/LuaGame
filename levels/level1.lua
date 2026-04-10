@@ -19,6 +19,7 @@ function level.load()
     background = love.graphics.newImage("/assets/background.png")
     playerImg = love.graphics.newImage("/assets/bLob.png")
     lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
+    ponka = love.graphics.newImage("/assets/ponka.png")
     bush = love.graphics.newImage("/assets/bush.png")
 
      -- PLAYER
@@ -28,6 +29,24 @@ function level.load()
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
     player.jumps = 0
+
+    --BALL
+    ball = {}
+    ball.body = love.physics.newBody(world, checkpointX + 50 , checkpointY, "dynamic")
+    ball.shape = love.physics.newCircleShape(math.random(10,20))
+    ball.fixture = love.physics.newFixture(ball.body, ball.shape)
+    
+    ball.fixture:setFriction(0.5)
+    ball.body:setAngularDamping(1)
+    ball.body:setLinearDamping(0.5)
+    ball.accel = 180
+    ball.jumps = 0
+    ball.active = false
+    if not ball.active then
+    ball.img = lostPonkas
+    else
+    ball.img = ponka
+    end
 
     -- TEXTO
     font = love.graphics.newFont(24)
@@ -79,19 +98,29 @@ function level.load()
            (b == player.fixture and dataA and dataA.allowJump) then
             player.jumps = 0
         end
+
+        if (a == player.fixture and b == ball.fixture) or 
+           (b == player.fixture and a == ball.fixture) then
+            ball.img = ponka
+            ball.active = true
+        end
+
     end)
 end
 
-function playerSpawn(x,y)
-    player.body:setPosition(x,y)
-    player.body:setLinearVelocity(0, 0)
-    player.jumps = 0
+function playerSpawn(x,y,ent)
+    tp = ent
+    tp.body:setPosition(x,y)
+    tp.body:setLinearVelocity(0, 0)
+    tp.body:setAngularVelocity(0)
+    tp.jumps = 0
 end
 
 function level.update(dt)
     world:update(dt)
 
     local x, y = player.body:getPosition()
+    
 
     if (math.abs(x - textX) < sw/5) then
         fade = fade + fadeVel * dt
@@ -113,7 +142,13 @@ function level.update(dt)
     
             
     if y > sh then
-        playerSpawn(checkpointX,checkpointY)
+        playerSpawn(checkpointX,checkpointY,player)
+    end
+
+    bx,by = ball.body:getPosition()
+    if  by > sh then
+         playerSpawn(checkpointX,checkpointY,ball)
+         ball.active = false
     end
 
     local vx, vy = player.body:getLinearVelocity()
@@ -136,6 +171,24 @@ function level.update(dt)
     local targetY = py - sh / 2
     camX = camX + (targetX - camX) * 5 * dt
     camY = camY + (targetY - camY) * 5 * dt
+
+
+
+    if ball.active then
+    local bAccel = ball.accel
+    local bvx, bvy = ball.body:getLinearVelocity()
+        if (px - bx) > sh/5 then
+        if bvx < speedMax then bvx = bvx + bAccel * dt else bvx = speedMax end
+        elseif (px - bx) < -sh/5 then
+            if bvx > -speedMax then bvx = bvx - bAccel * dt else bvx = -speedMax end
+        else
+            bvx = bvx * 0.95
+        end
+        
+        ball.body:setLinearVelocity(bvx, bvy)
+    end
+
+
 end
 
 function level.keypressed(key)
@@ -151,7 +204,7 @@ function level.keypressed(key)
     end
 
     if key == "r" then
-        playerSpawn(checkpointX, checkpointY)
+        playerSpawn(checkpointX, checkpointY,player)
     end
 
 end
@@ -247,6 +300,11 @@ function level.draw()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
     love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
 
+    -- BALL
+    local bx, by = ball.body:getPosition()
+    local bScale = (ball.shape:getRadius() * 2.5) / lostPonkas:getWidth()
+    
+    love.graphics.draw(ball.img, bx, by, ball.body:getAngle(), bScale, bScale, lostPonkas:getWidth()/2, lostPonkas:getWidth()/2)
     love.graphics.pop()
 end
 
