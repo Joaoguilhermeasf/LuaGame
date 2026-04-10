@@ -84,20 +84,17 @@ end
 function level.update(dt)
     world:update(dt)
 
-   
-
     local x, y = player.body:getPosition()
 
     if math.abs(x - textX) < sw/5 then
-    fade = fade + fadeVel * dt
-else
-    fade = fade - fadeVel * dt
-end
+        fade = fade + fadeVel * dt
+    else
+        fade = fade - fadeVel * dt
+    end
 
--- clamp direto (sem variável nova)
-if fade > 1 then fade = 1 end
-if fade < 0 then fade = 0 end
-        
+    if fade > 1 then fade = 1 end
+    if fade < 0 then fade = 0 end
+            
     if y > sh then
         playerSpawn(checkpointX,checkpointY)
     end
