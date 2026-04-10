@@ -24,20 +24,20 @@ function level.load()
      -- PLAYER
     player = {}
     player.body = love.physics.newBody(world, checkpointX, checkpointY, "dynamic")
-    player.shape = love.physics.newCircleShape(30)
+    player.shape = love.physics.newCircleShape(24)
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
     player.jumps = 0
 
     -- TEXTO
-    font = love.graphics.newFont(32)
+    font = love.graphics.newFont(24)
     welcomeText = love.graphics.newText(font, "Slide the left side of your screen to move!")
     textX = sw/2
     textY = sh/2
     fade = 0
     fadeVel = 0.5
 
-    font = love.graphics.newFont(32)
+    font = love.graphics.newFont(24)
     jumpText = love.graphics.newText(font, "Touch on the right side to jump!")
     jumptextX = sw*1.3
     jumptextY = sh/2
