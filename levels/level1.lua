@@ -205,7 +205,7 @@ function level.draw()
 
     -- CAMERA
     love.graphics.push()
-    love.graphics.translate(-camX, 0)
+    love.graphics.translate(-camX, -math.min(camY,0))
 
      -- BUSH
     local bs = sw*0.25
