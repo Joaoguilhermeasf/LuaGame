@@ -10,7 +10,7 @@ function love.conf(t)
     t.window.usedpiscale = true
     t.window.resizable = true
     t.window.borderless = false
-    t.window.fullscreen = false
+    t.window.fullscreen = true
 
     t.modules.physics = true
     t.modules.touch = true
