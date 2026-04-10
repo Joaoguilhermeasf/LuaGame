@@ -1,115 +1,95 @@
+local estado = "menu"   -- PODE SER MENU OU JOGO
+local levelAtual = nil
+local selecionado = 1
 
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
-local level = {}
-local checkpointX = sw/2
-function level.draw()
-    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
+local levels = {
+    "levels.level1"
+}
 
-     love.graphics.setColor(1, 1, 1, 0.5)
-    --GUIDE
-    love.graphics.setColor(1, 1, 1, 0.5)
-    love.graphics.rectangle("fill",0,0,sw/2,sh)
-
-    -- Fundo (sem câmera)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
-
-   
-
-    -- Câmera
-    love.graphics.push()
-    love.graphics.translate(-camX, 0)
-
+function loadLevel(index)
     
+    package.loaded[levels[index]] = nil -- SERVE PARA LIMPAR O CACHE ANTES DE INICIAR A FASE
+    
+    levelAtual = require(levels[index]) --LEVE ATUAL RECEBE O LEVEL DA LISTA
+    
+    if levelAtual and levelAtual.load then
+        levelAtual.load()
+    end
+end
 
+function love.load()
+    love.graphics.setBackgroundColor(0.1, 0.1, 0.1)
+end
 
-     -- Bush
-    local bs = sw*0.25
-    local scale = bs / bush:getWidth()
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(bush, sw/2, sh*0.65, 0, scale, scale)
+function love.update(dt)
+    if estado == "jogo" and levelAtual and levelAtual.update then
+        levelAtual.update(dt)
+    end
+end
 
-    -- Chão 1
-    love.graphics.setColor(0.8, 0.7, 0.6)
-    love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
+function love.draw()
+    local largura = love.graphics.getWidth()
+    local altura = love.graphics.getHeight()
 
-    -- Chão 2
-    love.graphics.setColor(0.8, 0.7, 0.6)
-    love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
+    if estado == "menu" then
+        love.graphics.setColor(1, 1, 1)
 
-    love.graphics.setColor(0.8,0.7,0.6)
-    love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
+        love.graphics.printf("PRESSIONE ENTER OU TOQUE PARA COMEÇAR", 0, altura/2, largura, "center")
 
+    elseif estado == "jogo" and levelAtual then
+        levelAtual.draw()
+    end
+end
 
-    -- define cor com alpha (fade)
-love.graphics.setColor(1, 1, 1, fade)
+function love.keypressed(key) --imput do teclado
 
-    -- desenha centralizado
-    love.graphics.draw(
-        welcomeText,
-        textX - welcomeText:getWidth()/2,
-        textY - welcomeText:getHeight()/2
-    )
+    if estado == "menu" then
+        if key == "return" then
+            loadLevel(selecionado)
+            estado = "jogo"
+        elseif key == "escape" then
+            love.event.quit()
+        end
+    end
 
-    love.graphics.setColor(1, 1, 1)
+    if estado == "jogo" then
+        if levelAtual and levelAtual.keypressed then
+            levelAtual.keypressed(key)
+        end
 
-    -- Player
-    local px, py = player.body:getPosition()
-    local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
-    love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
+        -- voltar pro menu
+        if key == "escape" then
+            estado = "menu"
+            levelAtual = nil
+        end
+    end
+end
 
-    love.graphics.pop()
+-- ==============================
+-- INPUT: TOQUE (CELULAR)
+-- ==============================
+function love.touchpressed(id, x, y)
+
+    -- MENU
+    if estado == "menu" then
+        loadLevel(selecionado)
+        estado = "jogo"
+    end
+
+    -- JOGO
+    if estado == "jogo" and levelAtual and levelAtual.touchpressed then
+        levelAtual.touchpressed(id, x, y)
+    end
+end
+
+function love.touchmoved(id, x, y, dx, dy)
+    if estado == "jogo" and levelAtual and levelAtual.touchmoved then
+        levelAtual.touchmoved(id, x, y, dx, dy)
+    end
+end
+
+function love.touchreleased(id, x, y)
+    if estado == "jogo" and levelAtual and levelAtual.touchreleased then
+        levelAtual.touchreleased(id, x, y)
+    end
 end
