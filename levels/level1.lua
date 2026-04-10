@@ -42,7 +42,7 @@ function level.load()
     jumptextX = sw*1.3
     jumptextY = sh/2
     fadeJ = 0
-    fadeJVel = 0.5
+    fadeJVel = 0.8
 
     -- CHÃO
     ground = {}
