@@ -35,18 +35,13 @@ function level.load()
     ball.body = love.physics.newBody(world, checkpointX + 50 , checkpointY, "dynamic")
     ball.shape = love.physics.newCircleShape(math.random(10,20))
     ball.fixture = love.physics.newFixture(ball.body, ball.shape)
-    
+    ball.img = lostPonkas
     ball.fixture:setFriction(0.5)
     ball.body:setAngularDamping(1)
     ball.body:setLinearDamping(0.5)
     ball.accel = 180
     ball.jumps = 0
     ball.active = false
-    if not ball.active then
-    ball.img = lostPonkas
-    else
-    ball.img = ponka
-    end
 
     -- TEXTO
     font = love.graphics.newFont(24)
@@ -74,7 +69,7 @@ function level.load()
     --CHÃO(2)
     local gap = 200
     local ground1RightEdge = sw/2 + (sw * 2) / 2 -- PEGA O CANTO DIREITO DO CHÃO
-    local ground2Width = sw
+    local ground2Width = sw*1.5
     local ground2X = ground1RightEdge + gap + ground2Width / 2
 
     ground2 = {}
@@ -83,11 +78,19 @@ function level.load()
     ground2.shape = love.physics.newRectangleShape(ground2Width, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
+    
+    --PLAT
+    platX,platY = ground2.body:getPosition()
+    plat = {}
+    plat.body = love.physics.newBody(world,platX, platY*1.1,"static")
+    plat.shape = love.physics.newRectangleShape(sw/2,sh)
+    plat.fixture = love.physics.newFixture(plat.body,plat.shape)
+    ground2.fixture:setUserData({allowJump = true})
 
     -- WALL
     wall ={}
     wall.body = love.physics.newBody(world, -sw/2, sh/2, "static")
-    wall.shape = love.physics.newRectangleShape(sw, sh)
+    wall.shape = love.physics.newRectangleShape(sw, sh*4)
     wall.fixture = love.physics.newFixture(wall.body, wall.shape)
 
 
@@ -114,6 +117,7 @@ function playerSpawn(x,y,ent)
     tp.body:setLinearVelocity(0, 0)
     tp.body:setAngularVelocity(0)
     tp.jumps = 0
+    ball.img = ponka
 end
 
 function level.update(dt)
@@ -204,7 +208,10 @@ function level.keypressed(key)
     end
 
     if key == "r" then
+        love.draw()
         playerSpawn(checkpointX, checkpointY,player)
+         playerSpawn(checkpointX, checkpointY,ball)
+         
     end
 
 end
@@ -273,6 +280,9 @@ function level.draw()
     -- CHAO 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
+
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.polygon("fill", plat.body:getWorldPoints(plat.shape:getPoints()))
 
     love.graphics.setColor(0.8,0.7,0.6)
     love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
