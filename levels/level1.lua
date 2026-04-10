@@ -7,7 +7,7 @@ local camX, camY = 0,0
 local sw = love.graphics.getWidth() --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
-local checkpointX = sw/2
+local checkpointX = sw/3
 local checkpointY = (sh/2) * 1.6
 
 function level.load()
@@ -30,10 +30,17 @@ function level.load()
     player.jumps = 0
 
     -- TEXTO
-    font = love.graphics.newFont(48)
+    font = love.graphics.newFont(32)
     welcomeText = love.graphics.newText(font, "Slide the left side of your screen to move!")
     textX = sw/2
     textY = sh/2
+    fade = 0
+    fadeVel = 0.5
+
+    font = love.graphics.newFont(32)
+    jumpText = love.graphics.newText(font, "Touch on the right side to jump!")
+    jumptextX = sw*1.3
+    jumptextY = sh/2
     fade = 0
     fadeVel = 0.5
 
@@ -86,7 +93,7 @@ function level.update(dt)
 
     local x, y = player.body:getPosition()
 
-    if math.abs(x - textX) < sw/5 then
+    if (math.abs(x - textX) < sw/5) or (math.abs(x - jumptextX) < sw/5) then
         fade = fade + fadeVel * dt
     else
         fade = fade - fadeVel * dt
@@ -180,27 +187,27 @@ function level.draw()
     love.graphics.setColor(1, 1, 1, 0.5)
     love.graphics.rectangle("fill",0,0,sw/2,sh)
 
-    -- Fundo (sem câmera)
+    -- FUNDO
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
    
 
-    -- Câmera
+    -- CAMERA
     love.graphics.push()
     love.graphics.translate(-camX, 0)
 
-     -- Bush
+     -- BUSH
     local bs = sw*0.25
     local scale = bs / bush:getWidth()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, sw/2, sh*0.65, 0, scale, scale)
 
-    -- Chão 1
+    -- CHAO
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
 
-    -- Chão 2
+    -- CHAO 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     love.graphics.polygon("fill", ground2.body:getWorldPoints(ground2.shape:getPoints()))
 
@@ -208,14 +215,19 @@ function level.draw()
     love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
 
 
-    -- define cor com alpha (fade)
 love.graphics.setColor(1, 1, 1, fade)
 
-    -- desenha centralizado
     love.graphics.draw(
         welcomeText,
         textX - welcomeText:getWidth()/2,
         textY - welcomeText:getHeight()/2
+    )
+
+
+    love.graphics.draw(
+        jumpText,
+        jumptextX - welcomeText:getWidth()/2,
+        jumptextY - welcomeText:getHeight()/2
     )
 
     love.graphics.setColor(1, 1, 1)
