@@ -7,7 +7,7 @@ local camX, camY = 0,0
 local sw = love.graphics.getWidth() --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
-local checkpointX = sw/3
+local checkpointX = sw/2
 local checkpointY = (sh/2) * 1.6
 
 function level.load()
@@ -48,13 +48,13 @@ function level.load()
     ground = {}
     local groundHeight = sh / 2
     ground.body = love.physics.newBody(world, sw/2, sh + groundHeight*0.2, "static")
-    ground.shape = love.physics.newRectangleShape(sw*1.5, groundHeight)
+    ground.shape = love.physics.newRectangleShape(sw*2, groundHeight)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
     --CHÃO(2)
     local gap = 200
-    local ground1RightEdge = sw/2 + (sw * 1.5) / 2 -- PEGA O CANTO DIREITO DO CHÃO
+    local ground1RightEdge = sw/2 + (sw * 2) / 2 -- PEGA O CANTO DIREITO DO CHÃO
     local ground2Width = sw
     local ground2X = ground1RightEdge + gap + ground2Width / 2
 

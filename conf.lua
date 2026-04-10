@@ -4,8 +4,8 @@ function love.conf(t)
 
     t.window.title = "Ponka"
 
-    t.window.width = 1280
-    t.window.height = 720
+    t.window.width = 1920
+    t.window.height = 1080
     t.window.highdpi = true
     t.window.usedpiscale = true
     t.window.resizable = true
