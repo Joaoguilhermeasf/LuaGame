@@ -41,8 +41,8 @@ function level.load()
     jumpText = love.graphics.newText(font, "Touch on the right side to jump!")
     jumptextX = sw*1.3
     jumptextY = sh/2
-    fade = 0
-    fadeVel = 0.5
+    fadeJ = 0
+    fadeJVel = 0.5
 
     -- CHÃO
     ground = {}
@@ -93,7 +93,7 @@ function level.update(dt)
 
     local x, y = player.body:getPosition()
 
-    if (math.abs(x - textX) < sw/5) or (math.abs(x - jumptextX) < sw/5) then
+    if (math.abs(x - textX) < sw/5) then
         fade = fade + fadeVel * dt
     else
         fade = fade - fadeVel * dt
@@ -101,6 +101,16 @@ function level.update(dt)
 
     if fade > 1 then fade = 1 end
     if fade < 0 then fade = 0 end
+
+    if (math.abs(x - jumptextX) < sw/5) then
+        fadeJ = fadeJ + fadeJVel * dt
+    else
+        fadeJ = fadeJ - fadeJVel * dt
+    end
+
+    if fadeJ > 1 then fadeJ = 1 end
+    if fadeJ < 0 then fadeJ = 0 end
+    
             
     if y > sh then
         playerSpawn(checkpointX,checkpointY)
@@ -215,7 +225,7 @@ function level.draw()
     love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
 
 
-love.graphics.setColor(1, 1, 1, fade)
+    love.graphics.setColor(1, 1, 1, fade)
 
     love.graphics.draw(
         welcomeText,
@@ -223,7 +233,7 @@ love.graphics.setColor(1, 1, 1, fade)
         textY - welcomeText:getHeight()/2
     )
 
-
+    love.graphics.setColor(1, 1, 1, fadeJ)
     love.graphics.draw(
         jumpText,
         jumptextX - welcomeText:getWidth()/2,
