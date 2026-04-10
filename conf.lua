@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- Arquivo: conf.lua (deve estar na mesma pasta que o main.lua)
 function love.conf(t)
     t.identity = "meu_jogo_blob"  -- Nome único para salvar dados
@@ -19,4 +20,13 @@ function love.conf(t)
     t.modules.physics = true
     t.modules.touch = true
     t.modules.graphics = true
+=======
+-- FULLSCREEN
+
+function love.conf(t)
+    t.window.width = 0  
+    t.window.height = 0  
+    --t.window.fullscreen = true
+    --t.window.fullscreentype = "desktop" 
+>>>>>>> ffb07428f27d0d6627f31a8964337cf527b10086
 end
