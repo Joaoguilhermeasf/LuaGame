@@ -2,7 +2,7 @@ function love.conf(t)
     t.identity = "ponka"
     t.version = "11.4"
 
-    t.window.title = "bLob High Res"
+    t.window.title = "Ponka High Res"
 
     t.window.width = 1280
     t.window.height = 720
