@@ -19,7 +19,7 @@ function spawnBall(x, y)
     b.fixture:setFriction(0.5)
     b.body:setAngularDamping(1)
     b.body:setLinearDamping(0.5)
-    b.accel  = 180
+    b.accel  = 190
     b.jumps  = 0
     b.active = false
     table.insert(balls, b)
