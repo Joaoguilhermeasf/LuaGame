@@ -9,7 +9,6 @@ local botoes = {}
 function loadTela(nome)
     package.loaded[nome] = nil
     telaAtual = require(nome)
-    print("telaAtual:", telaAtual)
     if telaAtual.load then
         telaAtual.load()
     end

@@ -266,7 +266,7 @@ function level.keypressed(key)
 
 end
 
-function level.touchpressed(id, x, y)
+function love.touchpressed(id, x, y)
     local sw = love.graphics.getWidth()
 
     if x < sw / 2 then 
@@ -287,7 +287,7 @@ function level.touchpressed(id, x, y)
     end
 end
 
-function level.touchmoved(id, x, y)
+function love.touchmoved(id, x, y)
     if touches[id] and touches[id].side == "move" then
         local dx = x - touches[id].x
         if dx > 40 then
@@ -300,7 +300,7 @@ function level.touchmoved(id, x, y)
     end
 end
 
-function level.touchreleased(id, x, y)
+function love.touchreleased(id, x, y)
     touches[id] = nil
     if next(touches) == nil then
         movingDir = 0
