@@ -48,11 +48,6 @@ function level.load()
     player.accel = 200
     player.jumps = 0
 
-    -- PONKAS
-    balls = {}
-    spawnBall(checkpointX + 50, checkpointY)
-    spawnBall(checkpointX + sw*1.7, checkpointY*3)
-
     -- TEXTO
     font = love.graphics.newFont(24)
     welcomeText = love.graphics.newText(font, "Slide the left side of your screen to move!")
@@ -93,10 +88,16 @@ function level.load()
     platX,platY = ground2.body:getPosition()
     plat = {}
     plat.body = love.physics.newBody(world,platX, platY*0.5,"kinematic")
-    plat.shape = love.physics.newRectangleShape(sw/2,sh*2)
+    plat.shape = love.physics.newRectangleShape(sw/2,sh)
     plat.fixture = love.physics.newFixture(plat.body,plat.shape)
     plat.fixture:setUserData({allowJump = true})
     plat.speed = 300
+
+    -- PONKAS
+    balls = {}
+    pX,pY = plat.body:getPosition()
+    spawnBall(pX, pY-sh)
+
 
     --BUTTON
     buttonX = platX - (sw/4)
@@ -182,7 +183,7 @@ function level.update(dt)
     if movePlat then
     local x, y = plat.body:getPosition()
     local bx,by = button.body:getPosition()
-    plat.body:setPosition(x, y + plat.speed* dt)
+    plat.body:setLinearVelocity(0, plat.speed)
     button.body:setPosition(bx, by + button.speed* dt)
     end
     
@@ -198,7 +199,7 @@ function level.update(dt)
         end
 
         if by > sh then
-            b.body:setPosition(checkpointX, checkpointY)
+            b.body:setPosition(sw*2.5, checkpointY)
             b.body:setLinearVelocity(0, 0)
             b.active = false
             b.img = lostPonkas
