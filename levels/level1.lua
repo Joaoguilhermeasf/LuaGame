@@ -92,7 +92,7 @@ function level.load()
     --PLAT
     platX,platY = ground2.body:getPosition()
     plat = {}
-    plat.body = love.physics.newBody(world,platX, platY*2,"kinematic")
+    plat.body = love.physics.newBody(world,platX, platY*0.5,"kinematic")
     plat.shape = love.physics.newRectangleShape(sw/2,sh*2)
     plat.fixture = love.physics.newFixture(plat.body,plat.shape)
     plat.fixture:setUserData({allowJump = true})
