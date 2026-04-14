@@ -9,7 +9,7 @@ local botoes = {}
 function loadTela(nome)
     package.loaded[nome] = nil
     telaAtual = require(nome)
-
+    print("telaAtual:", telaAtual)
     if telaAtual.load then
         telaAtual.load()
     end
@@ -81,9 +81,6 @@ function love.draw()
     end
 end
 
--- ==============================
--- INPUT TECLADO
--- ==============================
 function love.keypressed(key)
 
     if estado == "menu" then

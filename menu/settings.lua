@@ -1,5 +1,5 @@
 local settings = {}
-
+print("CARREGOU SETTINGS!!!")
 local volume = 0.5
 local botoes = {}
 
