@@ -66,7 +66,7 @@ function level.load()
     jumptextX = sw*1.3
     jumptextY = sh/2
     fadeJ = 0
-    fadeJVel = 0.8
+    fadeJVel = 0.5
 
     -- CHÃO
     ground = {}
@@ -93,7 +93,7 @@ function level.load()
     platX,platY = ground2.body:getPosition()
     plat = {}
     plat.body = love.physics.newBody(world,platX, platY,"kinematic")
-    plat.shape = love.physics.newRectangleShape(sw/2,sh)
+    plat.shape = love.physics.newRectangleShape(sw/2,sh*2)
     plat.fixture = love.physics.newFixture(plat.body,plat.shape)
     plat.fixture:setUserData({allowJump = true})
     plat.speed = 300
