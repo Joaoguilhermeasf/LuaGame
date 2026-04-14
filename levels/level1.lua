@@ -7,6 +7,8 @@ local camX, camY = 0,0
 local sw = love.graphics.getWidth() --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
+local xJump = 0
+
 local checkpointX = sw/2
 local checkpointY = (sh/2) * 1.6
 
@@ -19,9 +21,10 @@ function spawnBall(x, y)
     b.fixture:setFriction(0.5)
     b.body:setAngularDamping(1)
     b.body:setLinearDamping(0.5)
-    b.accel  = 190
-    b.jumps  = 0
-    b.active = false
+    b.accel    = 190
+    b.jumps    = 0
+    b.active   = false
+    b.hasJumped = false  
     table.insert(balls, b)
     return b
 end
@@ -95,6 +98,14 @@ function level.load()
     plat.fixture = love.physics.newFixture(plat.body,plat.shape)
     ground2.fixture:setUserData({allowJump = true})
 
+    --BUTTON
+    buttonX,_ = ground2.body:getPosition()
+    buttonY = sh/2
+    button={}
+    button.body = love.physics.newBody(world, buttonX, buttonY, "dynamic")
+    button.shape = love.physics.newRectangleShape(sw/10,sh/10)
+    button.fixture = love.physics.newFixture(button.body, button.shape)
+
     -- WALL
     wall ={}
     wall.body = love.physics.newBody(world, -sw/2, sh/2, "static")
@@ -127,7 +138,10 @@ function playerSpawn(x,y,ent)
     tp.body:setLinearVelocity(0, 0)
     tp.body:setAngularVelocity(0)
     tp.jumps = 0
-    ball.img = lostPonkas
+    if tp == "ball" then
+        tp.img = lostPonkas
+    end
+    
 end
 
 function level.update(dt)
@@ -158,6 +172,13 @@ function level.update(dt)
     -- BOLAS
     for _, b in ipairs(balls) do
         local bx, by = b.body:getPosition()
+
+        if not b.hasJumped and math.abs(bx - xJump) < 5 then
+            local bvx, _ = b.body:getLinearVelocity()
+            b.body:setLinearVelocity(bvx, -500)
+            b.hasJumped = true
+        end
+
         if by > sh then
             b.body:setPosition(checkpointX, checkpointY)
             b.body:setLinearVelocity(0, 0)
@@ -168,9 +189,9 @@ function level.update(dt)
         if b.active then
             local bvx, bvy = b.body:getLinearVelocity()
             if (x - bx) > sh/5 then
-                bvx = math.min(bvx + b.accel * dt, 500)
+                bvx = math.min(bvx + b.accel * dt, 1600)
             elseif (x - bx) < -sh/5 then
-                bvx = math.max(bvx - b.accel * dt, -500)
+                bvx = math.max(bvx - b.accel * dt, -1600)
             else
                 bvx = bvx * 0.95
             end
@@ -192,6 +213,8 @@ function level.update(dt)
 
     player.body:setLinearVelocity(vx, vy)
 
+    
+
     local px, py = player.body:getPosition()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
     local targetX = px - sw / 2
@@ -202,6 +225,12 @@ end
 
 function level.keypressed(key)
     if key == "up" and player.jumps < 2 then
+        xJump, _ = player.body:getPosition()
+
+        for _, b in ipairs(balls) do
+            b.hasJumped = false
+        end
+
         player.jumps = player.jumps + 1
 
         local vx = 0
@@ -215,8 +244,6 @@ function level.keypressed(key)
     if key == "r" then
         love.draw()
         playerSpawn(checkpointX, checkpointY,player)
-         playerSpawn(checkpointX, checkpointY,ball)
-         
     end
 
 end
@@ -224,11 +251,17 @@ end
 function level.touchpressed(id, x, y)
     local sw = love.graphics.getWidth()
 
-    if x < sw / 2 then --SÓ PEGA O MOVIMENTO NA ESQUERDA DA TELA
+    if x < sw / 2 then 
         touches[id] = {x = x, side = "move"}
-    else -- SÓ PEGA O MOVIMENTO NA PARTE DIREITA DA TELA
+    else 
         touches[id] = {x = x, side = "jump"}
         if player.jumps < 2 then
+            xJump, _ = player.body:getPosition()
+
+            for _, b in ipairs(balls) do
+                b.hasJumped = false
+            end
+
             player.jumps = player.jumps + 1
             local vx, vy = player.body:getLinearVelocity()
             player.body:setLinearVelocity(vx, -650)
@@ -291,6 +324,9 @@ function level.draw()
 
     love.graphics.setColor(0.8,0.7,0.6)
     love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
+
+    love.graphics.setColor(1,0.6,0.6)
+    love.graphics.polygon("fill", button.body:getWorldPoints(button.shape:getPoints()))
 
 
     love.graphics.setColor(1, 1, 1, fade)
