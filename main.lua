@@ -1,13 +1,11 @@
-local estado = "menu" -- menu, play, settings, jogo
+local estado = "menu"
 
 local telaAtual = nil
 local levelAtual = nil
 
 local botoes = {}
 
--- ==============================
--- CARREGAR TELA (play/settings)
--- ==============================
+
 function loadTela(nome)
     package.loaded[nome] = nil
     telaAtual = require(nome)
@@ -17,9 +15,6 @@ function loadTela(nome)
     end
 end
 
--- ==============================
--- CARREGAR LEVEL
--- ==============================
 function loadLevel(nome)
     package.loaded[nome] = nil
     levelAtual = require(nome)
@@ -31,12 +26,10 @@ function loadLevel(nome)
     estado = "jogo"
 end
 
--- ==============================
 function love.load()
     love.graphics.setBackgroundColor(0.1, 0.1, 0.1)
 end
 
--- ==============================
 function love.update(dt)
     if estado == "jogo" and levelAtual then
         if levelAtual.update then
@@ -50,7 +43,6 @@ function love.update(dt)
     end
 end
 
--- ==============================
 function love.draw()
     local largura = love.graphics.getWidth()
     local altura = love.graphics.getHeight()
@@ -123,9 +115,6 @@ function love.keypressed(key)
     end
 end
 
--- ==============================
--- MOUSE
--- ==============================
 function love.mousepressed(x, y, button)
 
     if estado == "menu" then
@@ -155,9 +144,7 @@ function love.mousepressed(x, y, button)
     end
 end
 
--- ==============================
--- TOUCH (CELULAR)
--- ==============================
+
 function love.touchpressed(id, x, y)
     local largura = love.graphics.getWidth()
     local altura = love.graphics.getHeight()
