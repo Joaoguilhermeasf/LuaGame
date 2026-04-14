@@ -4,13 +4,15 @@ local touches = {}
 local movingDir = 0
 local camX, camY = 0,0
 
-local sw = love.graphics.getWidth() --LARGURA DA TELA
-local sh = love.graphics.getHeight() --ALTURA DA TELA
+local sw = love.graphics.getWidth()
+local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
 local checkpointX = sw/2
 local checkpointY = (sh/2) * 1.6
+
+endLevelX, endLevelY = 0, 0
 
 function spawnBall(x, y)
     local b = {}
@@ -21,32 +23,34 @@ function spawnBall(x, y)
     b.fixture:setFriction(0.5)
     b.body:setAngularDamping(1)
     b.body:setLinearDamping(0.5)
-    b.accel    = 190
-    b.jumps    = 0
-    b.active   = false
-    b.hasJumped = false  
+    b.accel     = 190
+    b.jumps     = 0
+    b.active    = false
+    b.hasJumped = false
+    b.goingHome = false
+    b.dead      = false
     table.insert(balls, b)
     return b
 end
 
 function level.load()
-    love.graphics.setDefaultFilter("linear","linear",64) -- FILTRO DE IMAGEM COM BLUR
+    love.graphics.setDefaultFilter("linear","linear",64)
     world = love.physics.newWorld(0, 1000, true)
-    
-    --ASSETS
-    background = love.graphics.newImage("/assets/background.png")
-    playerImg = love.graphics.newImage("/assets/bLob.png")
-    lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
-    ponka = love.graphics.newImage("/assets/ponka.png")
-    bush = love.graphics.newImage("/assets/bush.png")
 
-     -- PLAYER
+    -- ASSETS
+    background = love.graphics.newImage("/assets/background.png")
+    playerImg  = love.graphics.newImage("/assets/bLob.png")
+    lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
+    ponka      = love.graphics.newImage("/assets/ponka.png")
+    bush       = love.graphics.newImage("/assets/bush.png")
+
+    -- PLAYER
     player = {}
-    player.body = love.physics.newBody(world, checkpointX, checkpointY, "dynamic")
-    player.shape = love.physics.newCircleShape(24)
+    player.body    = love.physics.newBody(world, checkpointX, checkpointY, "dynamic")
+    player.shape   = love.physics.newCircleShape(24)
     player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.accel = 200
-    player.jumps = 0
+    player.accel   = 200
+    player.jumps   = 0
 
     -- TEXTO
     font = love.graphics.newFont(24)
@@ -66,93 +70,94 @@ function level.load()
     -- CHÃO
     ground = {}
     local groundHeight = sh / 2
-    ground.body = love.physics.newBody(world, sw/2, sh + groundHeight*0.2, "static")
-    ground.shape = love.physics.newRectangleShape(sw*2, groundHeight)
+    ground.body    = love.physics.newBody(world, sw/2, sh + groundHeight*0.2, "static")
+    ground.shape   = love.physics.newRectangleShape(sw*2, groundHeight)
     ground.fixture = love.physics.newFixture(ground.body, ground.shape)
     ground.fixture:setUserData({allowJump = true})
 
-    --CHÃO(2)
-    local gap = 200
-    local ground1RightEdge = sw/2 + (sw * 2) / 2 
-    local ground2Width = sw*1.5
+    -- CHÃO 2
+    local gap          = 200
+    local ground2Width = sw * 1.5
+    local ground2Height = sh / 2
+    local ground1RightEdge = sw/2 + (sw * 2) / 2
     local ground2X = ground1RightEdge + gap + ground2Width / 2
 
     ground2 = {}
-    local ground2Height = sh / 2
-    ground2.body = love.physics.newBody(world, ground2X, sh + groundHeight*0.2, "static")
-    ground2.shape = love.physics.newRectangleShape(ground2Width, ground2Height)
+    ground2.body    = love.physics.newBody(world, ground2X, sh + groundHeight*0.2, "static")
+    ground2.shape   = love.physics.newRectangleShape(ground2Width, ground2Height)
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
-    
-    --PLAT
-    platX,platY = ground2.body:getPosition()
+
+    -- PLAT
+    platX, platY = ground2.body:getPosition()
     plat = {}
-    plat.body = love.physics.newBody(world,platX, platY*0.5,"kinematic")
-    plat.shape = love.physics.newRectangleShape(sw/2,sh)
-    plat.fixture = love.physics.newFixture(plat.body,plat.shape)
+    plat.body    = love.physics.newBody(world, platX, platY*0.4, "kinematic")
+    plat.shape   = love.physics.newRectangleShape(sw/2, sh)
+    plat.fixture = love.physics.newFixture(plat.body, plat.shape)
     plat.fixture:setUserData({allowJump = true})
-    plat.speed = 300
+    plat.speed   = 300
 
     -- PONKAS
     balls = {}
-    pX,pY = plat.body:getPosition()
-    spawnBall(pX, pY-sh)
+    pX, pY = plat.body:getPosition()
+    spawnBall(pX, pY - sh)
 
-
-    --BUTTON
-    buttonX = platX - (sw/4)
-    buttonY = groundHeight + groundHeight/2 + (sh/20)
-    button={}
-    button.body = love.physics.newBody(world, buttonX, buttonY, "kinematic")
-    button.shape = love.physics.newRectangleShape(sh/10,sh/10)
+    -- BUTTON
+    local pX2, pY2 = plat.body:getPosition()
+    buttonX = pX2 - (sw/4) - (sh/10)/2
+    buttonY = sh + groundHeight*0.2 - ground2Height/2 - (sh/10)/2
+    button = {}
+    button.body    = love.physics.newBody(world, buttonX, buttonY, "kinematic")
+    button.shape   = love.physics.newRectangleShape(sh/10, sh/10)
     button.fixture = love.physics.newFixture(button.body, button.shape)
-    button.speed = 300
+    button.speed   = 300
 
     -- WALL
-    wall ={}
-    wall.body = love.physics.newBody(world, -sw/2, sh/2, "static")
-    wall.shape = love.physics.newRectangleShape(sw, sh*4)
+    wall = {}
+    wall.body    = love.physics.newBody(world, -sw/2, sh/2, "static")
+    wall.shape   = love.physics.newRectangleShape(sw, sh*4)
     wall.fixture = love.physics.newFixture(wall.body, wall.shape)
 
-
     -- CALLBACKS
-  world:setCallbacks(function(a, b, coll)
-    local dataA, dataB = a:getUserData(), b:getUserData()
+    world:setCallbacks(function(a, b, coll)
+        local dataA, dataB = a:getUserData(), b:getUserData()
 
-    if (a == player.fixture and b == button.fixture) or 
-    (b == player.fixture and a == button.fixture) then
-        movePlat = true
-    end
-
-    if (a == player.fixture and dataB and dataB.allowJump) or 
-       (b == player.fixture and dataA and dataA.allowJump) then
-        player.jumps = 0
-    end
-
-    for _, ball in ipairs(balls) do
-        if (a == player.fixture and b == ball.fixture) or
-           (b == player.fixture and a == ball.fixture) then
-            ball.img = ponka
-            ball.active = true
+        if (a == player.fixture and b == button.fixture) or
+           (b == player.fixture and a == button.fixture) then
+            movePlat = true
         end
-    end
 
+        if (a == player.fixture and dataB and dataB.allowJump) or
+           (b == player.fixture and dataA and dataA.allowJump) then
+            player.jumps = 0
+        end
+
+        for _, ball in ipairs(balls) do
+            if (a == player.fixture and b == ball.fixture) or
+               (b == player.fixture and a == ball.fixture) then
+                ball.img    = ponka
+                ball.active = true
+            end
+        end
+    end)
+
+    -- END LEVEL (casa)
+    local g2x, g2y   = ground2.body:getPosition()
+    local houseW     = sw / 5
+    local houseH     = sh / 5
+    endLevelX = g2x + ground2Width/2 - houseW/2
+    endLevelY = g2y - ground2Height/2 - houseH/2
 end
-)
 
-
-end
-
-function playerSpawn(x,y,ent)
+function playerSpawn(x, y, ent)
     tp = ent
-    tp.body:setPosition(x,y)
+    tp.body:setPosition(x, y)
     tp.body:setLinearVelocity(0, 0)
     tp.body:setAngularVelocity(0)
     tp.jumps = 0
     if tp == "ball" then
         tp.img = lostPonkas
     end
-    
 end
 
 function level.update(dt)
@@ -160,33 +165,28 @@ function level.update(dt)
 
     local x, y = player.body:getPosition()
 
-    if (math.abs(x - textX) < sw/5) then
-        fade = fade + fadeVel * dt
+    if math.abs(x - textX) < sw/5 then
+        fade = math.min(fade + fadeVel * dt, 1)
     else
-        fade = fade - fadeVel * dt
+        fade = math.max(fade - fadeVel * dt, 0)
     end
-    if fade > 1 then fade = 1 end
-    if fade < 0 then fade = 0 end
 
-    if (math.abs(x - jumptextX) < sw/5) then
-        fadeJ = fadeJ + fadeJVel * dt
+    if math.abs(x - jumptextX) < sw/5 then
+        fadeJ = math.min(fadeJ + fadeJVel * dt, 1)
     else
-        fadeJ = fadeJ - fadeJVel * dt
+        fadeJ = math.max(fadeJ - fadeJVel * dt, 0)
     end
-    if fadeJ > 1 then fadeJ = 1 end
-    if fadeJ < 0 then fadeJ = 0 end
 
     if y > sh then
         playerSpawn(checkpointX, checkpointY, player)
     end
 
     if movePlat then
-    local x, y = plat.body:getPosition()
-    local bx,by = button.body:getPosition()
-    plat.body:setLinearVelocity(0, plat.speed)
-    button.body:setPosition(bx, by + button.speed* dt)
+        local px, py = plat.body:getPosition()
+        local bx, by = button.body:getPosition()
+        plat.body:setLinearVelocity(0, plat.speed)
+        button.body:setPosition(bx, by + button.speed * dt)
     end
-    
 
     -- BOLAS
     for _, b in ipairs(balls) do
@@ -201,26 +201,57 @@ function level.update(dt)
         if by > sh then
             b.body:setPosition(sw*2.5, checkpointY)
             b.body:setLinearVelocity(0, 0)
-            b.active = false
-            b.img = lostPonkas
+            b.active    = false
+            b.goingHome = false
+            b.img       = lostPonkas
+            b.body:setGravityScale(1)
         end
 
         if b.active then
             local bvx, bvy = b.body:getLinearVelocity()
-            if (x - bx) > sh/5 then
-                bvx = math.min(bvx + b.accel * dt, 1600)
-            elseif (x - bx) < -sh/5 then
-                bvx = math.max(bvx - b.accel * dt, -1600)
-            else
-                bvx = bvx * 0.95
+
+            local dx   = endLevelX - bx
+            local dy   = endLevelY - by
+            local dist = math.sqrt(dx*dx + dy*dy)
+
+            -- entra em modo "indo pra casa" quando chega perto
+            if dist < sw * 0.3 then
+                b.goingHome = true
             end
-            b.body:setLinearVelocity(bvx, bvy)
+
+            if b.goingHome then
+                if dist < 12 then
+                    b.dead = true  -- chegou ao centro: remove
+                else
+                    local speed = 400
+                    b.body:setLinearVelocity((dx/dist)*speed, (dy/dist)*speed)
+                    b.body:setGravityScale(0)  -- ignora gravidade no caminho
+                end
+            else
+                -- comportamento normal: segue o player
+                if (x - bx) > sh/5 then
+                    bvx = math.min(bvx + b.accel * dt, 1600)
+                elseif (x - bx) < -sh/5 then
+                    bvx = math.max(bvx - b.accel * dt, -1600)
+                else
+                    bvx = bvx * 0.95
+                end
+                b.body:setLinearVelocity(bvx, bvy)
+            end
         end
     end
 
-    local vx, vy = player.body:getLinearVelocity()
+    -- remove balls que chegaram na casa
+    for i = #balls, 1, -1 do
+        if balls[i].dead then
+            balls[i].body:destroy()
+            table.remove(balls, i)
+        end
+    end
+
+    local vx, vy   = player.body:getLinearVelocity()
     local speedMax = 500
-    local accel = player.accel
+    local accel    = player.accel
 
     if love.keyboard.isDown("right") or movingDir == 1 then
         if vx < speedMax then vx = vx + accel * dt else vx = speedMax end
@@ -232,10 +263,8 @@ function level.update(dt)
 
     player.body:setLinearVelocity(vx, vy)
 
-    
-
-    local px, py = player.body:getPosition()
-    local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
+    local px, py  = player.body:getPosition()
+    local sw, sh  = love.graphics.getWidth(), love.graphics.getHeight()
     local targetX = px - sw / 2
     local targetY = py - sh / 2
     camX = camX + (targetX - camX) * 5 * dt
@@ -257,22 +286,20 @@ function level.keypressed(key)
         elseif love.keyboard.isDown("left") then vx = -350 end
 
         player.body:setLinearVelocity(vx, -500)
-
     end
 
     if key == "r" then
         love.draw()
-        playerSpawn(checkpointX, checkpointY,player)
+        playerSpawn(checkpointX, checkpointY, player)
     end
-
 end
 
 function love.touchpressed(id, x, y)
     local sw = love.graphics.getWidth()
 
-    if x < sw / 2 then 
+    if x < sw / 2 then
         touches[id] = {x = x, side = "move"}
-    else 
+    else
         touches[id] = {x = x, side = "jump"}
         if player.jumps < 2 then
             xJump, _ = player.body:getPosition()
@@ -310,74 +337,74 @@ end
 
 function level.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
-    --GUIDE
+
+    -- GUIDE
     love.graphics.setColor(1, 1, 1, 0.5)
-    love.graphics.rectangle("fill",0,0,sw/2,sh)
+    love.graphics.rectangle("fill", 0, 0, sw/2, sh)
 
     -- FUNDO
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
 
-   
-
     -- CAMERA
     love.graphics.push()
-    love.graphics.translate(-camX, -math.min(camY,0))
+    love.graphics.translate(-camX, -math.min(camY, 0))
 
-     -- BUSH
-    local bs = sw*0.25
+    -- BUSH
+    local bs    = sw * 0.25
     local scale = bs / bush:getWidth()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(bush, sw/2, sh*0.65, 0, scale, scale)
 
     -- CHÃO
-love.graphics.setColor(0.8, 0.7, 0.6)
-do
-    local x, y = ground.body:getPosition()
-    local w = sw * 2
-    local h = sh / 2
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
-end
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    do
+        local x, y = ground.body:getPosition()
+        local w, h = sw*2, sh/2
+        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+    end
 
--- CHÃO 2
-love.graphics.setColor(0.8, 0.7, 0.6)
-do
-    local x, y = ground2.body:getPosition()
-    local w = sw * 1.5
-    local h = sh / 2
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
-end
+    -- CHÃO 2
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    do
+        local x, y = ground2.body:getPosition()
+        local w, h = sw*1.5, sh/2
+        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+    end
 
--- PLATAFORMA
-love.graphics.setColor(0.8, 0.7, 0.6)
-do
-    local x, y = plat.body:getPosition()
-    local w = sw / 2
-    local h = sh
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
-end
+    -- PLATAFORMA
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    do
+        local x, y = plat.body:getPosition()
+        local w, h = sw/2, sh
+        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+    end
 
--- WALL
-love.graphics.setColor(0.8, 0.7, 0.6)
-do
-    local x, y = wall.body:getPosition()
-    local w = sw
-    local h = sh * 4
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
-end
+    -- WALL
+    love.graphics.setColor(0.8, 0.7, 0.6)
+    do
+        local x, y = wall.body:getPosition()
+        local w, h = sw, sh*4
+        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+    end
 
--- BUTTON
-love.graphics.setColor(1, 0.6, 0.6)
-do
-    local x, y = button.body:getPosition()
-    local w = sh / 10
-    local h = sh / 10
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 10, 10)
-end
+    -- BUTTON
+    love.graphics.setColor(1, 0.6, 0.6)
+    do
+        local x, y = button.body:getPosition()
+        local w, h = sh/10, sh/10
+        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 10, 10)
+    end
 
+    -- HOUSE
+    love.graphics.setColor(1, 0.6, 0.6)
+    do
+        local w, h = sw/5, sh/5
+        love.graphics.rectangle("fill", endLevelX - w/2, endLevelY - h/2, w, h, 10, 10)
+    end
 
+    -- TEXTOS
     love.graphics.setColor(1, 1, 1, fade)
-
     love.graphics.draw(
         welcomeText,
         textX - welcomeText:getWidth()/2,
@@ -393,17 +420,18 @@ end
 
     love.graphics.setColor(1, 1, 1)
 
-    -- Player
+    -- PLAYER
     local px, py = player.body:getPosition()
     local pScale = (player.shape:getRadius() * 2.5) / playerImg:getWidth()
     love.graphics.draw(playerImg, px, py, player.body:getAngle(), pScale, pScale, playerImg:getWidth()/2, playerImg:getHeight()/2)
 
-    -- BALL
+    -- BALLS
     for _, b in ipairs(balls) do
         local bx, by = b.body:getPosition()
         local bScale = (b.shape:getRadius() * 2.5) / lostPonkas:getWidth()
         love.graphics.draw(b.img, bx, by, b.body:getAngle(), bScale, bScale, lostPonkas:getWidth()/2, lostPonkas:getWidth()/2)
     end
+
     love.graphics.pop()
 end
 
