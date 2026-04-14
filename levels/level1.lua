@@ -8,8 +8,8 @@ local sw = love.graphics.getWidth() --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
 local xJump = 0
-
-local checkpointX = sw/2
+local movePlat = false
+local checkpointX = sw
 local checkpointY = (sh/2) * 1.6
 
 function spawnBall(x, y)
@@ -32,7 +32,6 @@ end
 function level.load()
     love.graphics.setDefaultFilter("linear","linear",64) -- FILTRO DE IMAGEM COM BLUR
     world = love.physics.newWorld(0, 1000, true)
-    
     
     --ASSETS
     background = love.graphics.newImage("/assets/background.png")
@@ -79,7 +78,7 @@ function level.load()
 
     --CHÃO(2)
     local gap = 200
-    local ground1RightEdge = sw/2 + (sw * 2) / 2 -- PEGA O CANTO DIREITO DO CHÃO
+    local ground1RightEdge = sw/2 + (sw * 2) / 2 
     local ground2Width = sw*1.5
     local ground2X = ground1RightEdge + gap + ground2Width / 2
 
@@ -93,18 +92,20 @@ function level.load()
     --PLAT
     platX,platY = ground2.body:getPosition()
     plat = {}
-    plat.body = love.physics.newBody(world,platX, platY,"static")
+    plat.body = love.physics.newBody(world,platX, platY,"kinematic")
     plat.shape = love.physics.newRectangleShape(sw/2,sh)
     plat.fixture = love.physics.newFixture(plat.body,plat.shape)
-    ground2.fixture:setUserData({allowJump = true})
+    plat.fixture:setUserData({allowJump = true})
+    plat.speed = 300
 
     --BUTTON
-    buttonX,_ = ground2.body:getPosition()
-    buttonY = sh/2
+    buttonX,buttonY = plat.body:getPosition()
+    buttonY = platY - (sh/2) - (sh/20)
     button={}
-    button.body = love.physics.newBody(world, buttonX, buttonY, "dynamic")
-    button.shape = love.physics.newRectangleShape(sw/10,sh/10)
+    button.body = love.physics.newBody(world, buttonX, buttonY, "kinematic")
+    button.shape = love.physics.newRectangleShape(sh/10,sh/10)
     button.fixture = love.physics.newFixture(button.body, button.shape)
+    button.speed = 300
 
     -- WALL
     wall ={}
@@ -116,6 +117,11 @@ function level.load()
     -- CALLBACKS
   world:setCallbacks(function(a, b, coll)
     local dataA, dataB = a:getUserData(), b:getUserData()
+
+    if (a == player.fixture and b == button.fixture) or 
+    (b == player.fixture and a == button.fixture) then
+        movePlat = true
+    end
 
     if (a == player.fixture and dataB and dataB.allowJump) or 
        (b == player.fixture and dataA and dataA.allowJump) then
@@ -129,7 +135,11 @@ function level.load()
             ball.active = true
         end
     end
-end)
+
+end
+)
+
+
 end
 
 function playerSpawn(x,y,ent)
@@ -168,6 +178,14 @@ function level.update(dt)
     if y > sh then
         playerSpawn(checkpointX, checkpointY, player)
     end
+
+    if movePlat then
+    local x, y = plat.body:getPosition()
+    local bx,by = button.body:getPosition()
+    plat.body:setPosition(x, y + plat.speed* dt)
+    button.body:setPosition(bx, by + button.speed* dt)
+    end
+    
 
     -- BOLAS
     for _, b in ipairs(balls) do
