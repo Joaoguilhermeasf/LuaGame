@@ -51,7 +51,7 @@ function love.draw()
         botoes = {}
 
         love.graphics.setColor(1,1,1)
-        love.graphics.printf("MENU PRINCIPAL", 0, altura/3, largura, "center")
+        love.graphics.printf("PONKA", 0, altura/3, largura, "center")
 
         local opcoes = {"Play", "Settings"}
 
