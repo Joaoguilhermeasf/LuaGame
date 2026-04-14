@@ -371,7 +371,7 @@ do
     local x, y = button.body:getPosition()
     local w = sh / 10
     local h = sh / 10
-    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+    love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 10, 10)
 end
 
 
