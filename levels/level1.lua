@@ -9,8 +9,11 @@ local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
-local checkpointX = sw*2
+local checkpointX = sw
 local checkpointY = (sh/2) * 1.6
+
+local PLAT_SCALE = 2
+local BUTTON_SCALE = 2
 
 endLevelX, endLevelY = 0, 0
 
@@ -96,15 +99,16 @@ function level.load()
     -- PLAT
     platX, platY = ground2.body:getPosition()
 
-    local platH = sh
-    local platW = platH * (biggie:getWidth() / biggie:getHeight())
+    local baseH = sh
+    local baseW = baseH * (biggie:getWidth() / biggie:getHeight())
 
     plat = {}
+    plat.w = baseW * PLAT_SCALE
+    plat.h = baseH * PLAT_SCALE
+
     plat.body    = love.physics.newBody(world, platX, platY*0.4, "kinematic")
-    plat.shape   = love.physics.newRectangleShape(platW*0.7, platH)
+    plat.shape   = love.physics.newRectangleShape(plat.w*0.7, plat.h)
     plat.fixture = love.physics.newFixture(plat.body, plat.shape)
-    plat.w       = platW
-    plat.h       = platH
     plat.fixture:setUserData({allowJump = true})
     plat.speed   = 300
 
@@ -116,11 +120,16 @@ function level.load()
     -- BUTTON
     local bw = sh/10
     local pX2, pY2 = plat.body:getPosition()
-    buttonX = pX2 - platW/2
-    buttonY = (sh + (sh/2)*0.2) - (sh/2)/2 - bw/2
+
     button = {}
+    button.w = (bw*1.5) * BUTTON_SCALE
+    button.h = bw * BUTTON_SCALE
+
+    buttonX = pX2 - plat.w/2
+    buttonY = (sh + (sh/2)*0.2) - (sh/2)/2 - button.h/2
+
     button.body    = love.physics.newBody(world, buttonX, buttonY, "kinematic")
-    button.shape   = love.physics.newRectangleShape(bw*1.5, bw)
+    button.shape   = love.physics.newRectangleShape(button.w, button.h)
     button.fixture = love.physics.newFixture(button.body, button.shape)
     button.fixture:setUserData({allowJump = true})
 
@@ -206,7 +215,7 @@ function level.update(dt)
     if movePlat then
         local px, py = plat.body:getPosition()
 
-        local limitY = sh*1.005
+        local limitY = sh*1.21
 
         if py < limitY then
             plat.body:setLinearVelocity(0, plat.speed)
@@ -406,6 +415,15 @@ function level.draw()
         love.graphics.draw(biggie, x, y, 0, scale, scale, biggie:getWidth()/2, biggie:getHeight()/2)
     end
 
+    -- BUTTON (usa tamanho real)
+    do
+        local x, y = button.body:getPosition()
+        local sx = button.w / foot:getWidth()
+        local sy = button.h / foot:getHeight()
+        love.graphics.draw(foot, x, y, 0, sx, sy, foot:getWidth()/2, foot:getHeight()/2)
+    end
+
+
     -- WALL
     love.graphics.setColor(0.8, 0.7, 0.6)
     do
@@ -415,14 +433,7 @@ function level.draw()
     end
 
     love.graphics.setColor(1, 1, 1)
-     -- BUTTON 
-    do
-        local x, y = button.body:getPosition()
-        local bw = sh/10
-        local sx = bw / foot:getWidth()
-        local sy = bw / foot:getHeight()
-        love.graphics.draw(foot, x, y, 0, sx*1.5, sy, foot:getWidth()/2, foot:getHeight()/2)
-    end
+   
 
     -- HOUSE
     love.graphics.setColor(1, 0.6, 0.6)
