@@ -9,7 +9,7 @@ local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
-local checkpointX = sw/2
+local checkpointX = sw*2
 local checkpointY = (sh/2) * 1.6
 
 endLevelX, endLevelY = 0, 0
@@ -39,10 +39,13 @@ function level.load()
 
     -- ASSETS
     background = love.graphics.newImage("/assets/background.png")
+    biggie     = love.graphics.newImage("/assets/biggie.png")
     playerImg  = love.graphics.newImage("/assets/bLob.png")
+    playerImg2  = love.graphics.newImage("/assets/bLob2.png")
     lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
     ponka      = love.graphics.newImage("/assets/ponka.png")
     bush       = love.graphics.newImage("/assets/bush.png")
+    foot       = love.graphics.newImage("/assets/foot.png")
 
     -- PLAYER
     player = {}
@@ -51,6 +54,8 @@ function level.load()
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel   = 200
     player.jumps   = 0
+    player.img       = playerImg
+    player.flipTimer = math.random(10, 15) / 100  -- 0.10s a 0.30s
 
     -- TEXTO
     font = love.graphics.newFont(24)
@@ -90,10 +95,16 @@ function level.load()
 
     -- PLAT
     platX, platY = ground2.body:getPosition()
+
+    local platH = sh
+    local platW = platH * (biggie:getWidth() / biggie:getHeight())
+
     plat = {}
     plat.body    = love.physics.newBody(world, platX, platY*0.4, "kinematic")
-    plat.shape   = love.physics.newRectangleShape(sw/2, sh)
+    plat.shape   = love.physics.newRectangleShape(platW*0.7, platH)
     plat.fixture = love.physics.newFixture(plat.body, plat.shape)
+    plat.w       = platW
+    plat.h       = platH
     plat.fixture:setUserData({allowJump = true})
     plat.speed   = 300
 
@@ -103,14 +114,15 @@ function level.load()
     spawnBall(pX, pY - sh)
 
     -- BUTTON
+    local bw = sh/10
     local pX2, pY2 = plat.body:getPosition()
-    buttonX = pX2 - (sw/4) - (sh/10)/2
-    buttonY = sh + groundHeight*0.2 - ground2Height/2 - (sh/10)/2
+    buttonX = pX2 - platW/2
+    buttonY = (sh + (sh/2)*0.2) - (sh/2)/2 - bw/2
     button = {}
     button.body    = love.physics.newBody(world, buttonX, buttonY, "kinematic")
-    button.shape   = love.physics.newRectangleShape(sh/10, sh/10)
+    button.shape   = love.physics.newRectangleShape(bw*1.5, bw)
     button.fixture = love.physics.newFixture(button.body, button.shape)
-    button.speed   = 300
+    button.fixture:setUserData({allowJump = true})
 
     -- WALL
     wall = {}
@@ -141,7 +153,7 @@ function level.load()
         end
     end)
 
-    -- END LEVEL (casa)
+    -- END LEVEL 
     local g2x, g2y   = ground2.body:getPosition()
     local houseW     = sw / 5
     local houseH     = sh / 5
@@ -165,6 +177,16 @@ function level.update(dt)
 
     local x, y = player.body:getPosition()
 
+    player.flipTimer = player.flipTimer - dt
+    if player.flipTimer <= 0 then
+        if player.img == playerImg then
+            player.img = playerImg2
+        else
+            player.img = playerImg
+        end
+        player.flipTimer = math.random(10, 15) / 100
+    end
+
     if math.abs(x - textX) < sw/5 then
         fade = math.min(fade + fadeVel * dt, 1)
     else
@@ -183,9 +205,14 @@ function level.update(dt)
 
     if movePlat then
         local px, py = plat.body:getPosition()
-        local bx, by = button.body:getPosition()
-        plat.body:setLinearVelocity(0, plat.speed)
-        button.body:setPosition(bx, by + button.speed * dt)
+
+        local limitY = sh*1.005
+
+        if py < limitY then
+            plat.body:setLinearVelocity(0, plat.speed)
+        else
+            plat.body:setLinearVelocity(0, 0)
+        end
     end
 
     -- BOLAS
@@ -214,21 +241,21 @@ function level.update(dt)
             local dy   = endLevelY - by
             local dist = math.sqrt(dx*dx + dy*dy)
 
-            -- entra em modo "indo pra casa" quando chega perto
             if dist < sw * 0.3 then
                 b.goingHome = true
             end
 
             if b.goingHome then
+                b.fixture:setSensor(true)
                 if dist < 12 then
-                    b.dead = true  -- chegou ao centro: remove
+                    b.dead = true  
                 else
                     local speed = 400
                     b.body:setLinearVelocity((dx/dist)*speed, (dy/dist)*speed)
-                    b.body:setGravityScale(0)  -- ignora gravidade no caminho
+                    b.body:setGravityScale(0)  
                 end
             else
-                -- comportamento normal: segue o player
+                
                 if (x - bx) > sh/5 then
                     bvx = math.min(bvx + b.accel * dt, 1600)
                 elseif (x - bx) < -sh/5 then
@@ -241,7 +268,6 @@ function level.update(dt)
         end
     end
 
-    -- remove balls que chegaram na casa
     for i = #balls, 1, -1 do
         if balls[i].dead then
             balls[i].body:destroy()
@@ -373,11 +399,11 @@ function level.draw()
     end
 
     -- PLATAFORMA
-    love.graphics.setColor(0.8, 0.7, 0.6)
+    love.graphics.setColor(1, 1, 1)
     do
         local x, y = plat.body:getPosition()
-        local w, h = sw/2, sh
-        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
+        local scale = plat.h / biggie:getHeight()
+        love.graphics.draw(biggie, x, y, 0, scale, scale, biggie:getWidth()/2, biggie:getHeight()/2)
     end
 
     -- WALL
@@ -388,12 +414,14 @@ function level.draw()
         love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
     end
 
-    -- BUTTON
-    love.graphics.setColor(1, 0.6, 0.6)
+    love.graphics.setColor(1, 1, 1)
+     -- BUTTON 
     do
         local x, y = button.body:getPosition()
-        local w, h = sh/10, sh/10
-        love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 10, 10)
+        local bw = sh/10
+        local sx = bw / foot:getWidth()
+        local sy = bw / foot:getHeight()
+        love.graphics.draw(foot, x, y, 0, sx*1.5, sy, foot:getWidth()/2, foot:getHeight()/2)
     end
 
     -- HOUSE
