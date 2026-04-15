@@ -9,7 +9,7 @@ local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
-local checkpointX = sw
+local checkpointX = sw*2
 local checkpointY = (sh/2) * 1.6
 
 local PLAT_SCALE = 2
