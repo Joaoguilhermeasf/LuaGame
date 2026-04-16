@@ -169,10 +169,10 @@ function level.load()
                 inWater = true
             end
  
-            -- Tocar lava → respawn
+            -- Tocar lava → agenda respawn (não pode chamar direto no callback)
             if (a == player.fixture and dataB and dataB.type == "lava") or
                (b == player.fixture and dataA and dataA.type == "lava") then
-                respawnPlayer()
+                needsRespawn = true
             end
  
             -- Tocar bola → ativar (igual level1)
@@ -222,7 +222,13 @@ function level.update(dt)
  
     local px, py = player.body:getPosition()
  
-    
+    -- Respawn agendado pela lava (não pode rodar dentro do callback)
+    if needsRespawn then
+        needsRespawn = false
+        respawnPlayer()
+        return
+    end
+
     -- Caiu fora da tela → respawn
     if py > sh * 1.1 then
         respawnPlayer()
