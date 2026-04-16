@@ -63,7 +63,7 @@ function level.load()
     balls = {}
     spawnBall(sw * 0.15, sh * 0.1)   -- primeira bola
     spawnBall(sw * 1.13, - sh * 0.4)   -- segunda bola
-    spawnBall(sw * 0.58, sh * 0.92)   -- bola inferior
+    spawnBall(sw * 0.7, sh * 0.2)   -- terceira bola
 
     -- FONTE
     font = love.graphics.newFont(20)
