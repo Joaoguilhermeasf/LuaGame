@@ -523,16 +523,16 @@ function level.draw()
     eye.x + eye.offsetX1,
     eye.y + eye.offsetY,
     px, py,
-    110,   -- eyeRadius
-    55     -- pupilRadius
+     sw/18,
+        sw/36
     )
 
     drawEye(
         eye.x + eye.offsetX2,
         eye.y + eye.offsetY,
         px, py,
-        110,
-        55
+        sw/18,
+        sw/36
     )
 
     -- CHÃO 2
@@ -611,16 +611,16 @@ function level.draw()
         hx + houseEye.offsetX1,
         hy + houseEye.offsetY,
         px, py,
-        28,
-        14
+        sw/90,
+        sw/180
     )
 
     drawEye(
         hx + houseEye.offsetX2,
         hy + houseEye.offsetY,
         px, py,
-        28,
-        14
+        sw/90,
+        sw/180
     )
     end
     
