@@ -52,7 +52,7 @@ function level.load()
 
     -- PLAYER
     player = {}
-    player.body = love.physics.newBody(world, 100, 200, "dynamic") --Onde o palyer vai spaenar
+    player.body = love.physics.newBody(world, -800, -100, "dynamic") --Onde o palyer vai spaenar
     player.shape = love.physics.newCircleShape(24)
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
@@ -325,33 +325,33 @@ end
 -- ==============================
 -- INPUT TOUCH
 -- ==============================
-function level.touchpressed(id, x, y)
+function love.touchpressed(id, x, y)
     local sw = love.graphics.getWidth()
-    if x < sw / 2 then
-        touches[id] = { x = x, side = "move" }
-    else
-        touches[id] = { x = x, side = "jump" }
+
+    if x < sw / 2 then 
+        touches[id] = {x = x, side = "move"}
+    else 
+        touches[id] = {x = x, side = "jump"}
         if player.jumps < 2 then
             xJump, _ = player.body:getPosition()
- 
+
             for _, b in ipairs(balls) do
                 b.hasJumped = false
             end
- 
+
             player.jumps = player.jumps + 1
-            local jumpForce = inWater and -350 or -550
-            local vx, _ = player.body:getLinearVelocity()
-            player.body:setLinearVelocity(vx, jumpForce)
+            local vx, vy = player.body:getLinearVelocity()
+            player.body:setLinearVelocity(vx, -650)
         end
     end
 end
- 
-function level.touchmoved(id, x, y, dx, dy)
+
+function love.touchmoved(id, x, y)
     if touches[id] and touches[id].side == "move" then
-        local d = x - touches[id].x
-        if d > 40 then
+        local dx = x - touches[id].x
+        if dx > 40 then
             movingDir = 1
-        elseif d < -40 then
+        elseif dx < -40 then
             movingDir = -1
         else
             movingDir = 0
