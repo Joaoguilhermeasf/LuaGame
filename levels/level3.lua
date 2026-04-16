@@ -110,35 +110,16 @@ function level.load()
     -- ===========================
 
    
+    -- ==========================
+    -- INICIO SEGUNDO PISO
+    -- ==========================
+    addPlat(sw*1.4,   sh*0.7,  sw*0.9, sh*0.09, true)
 
-    -- Plataforma flutuante centro-esquerda
-    addPlat(sw*0.38,   sh*0.33,  sw*0.12, sh*0.025)
-
-    -- Bloco centro (com degrau)
-    addPlat(sw*0.37,   sh*0.52,  sw*0.08, sh*0.04)   -- degrau centro
-    addPlat(sw*0.28,   sh*0.62,  sw*0.42, sh*0.04)   -- chão centro
-
-    -- Plataforma direita alta (onde fica a água)
-    addPlat(sw*0.70,   sh*0.18,  sw*0.32, sh*0.04)
-
-    -- Pequena plataforma topo direito (acima da água)
-    addPlat(sw*0.78,   sh*0.10,  sw*0.10, sh*0.025)
-
-    -- Bloco direito baixo
-    addPlat(sw*0.82,   sh*0.52,  sw*0.20, sh*0.04)
-
-    -- Plataforma centro-baixo flutuante
-    addPlat(sw*0.56,   sh*0.68,  sw*0.24, sh*0.025)
-
-    -- Chão inferior esquerdo
-    addPlat(sw*0.14,   sh*0.88,  sw*0.30, sh*0.04)
-
-    -- Canto inferior direito (parede+chão)
-    addPlat(sw*0.92,   sh*0.75,  sw*0.18, sh*0.55)
+   
 
     -- Chão do fundo (kill zone já tratada por y > sh)
     -- Parede direita
-    addPlat(sw*1.86,   sh*0.5,   sw*0.04, sh*2)
+    addPlat(sw*1.86,   sh*0.5,   sw*0.04, sh*2, false)
 
     -- ==============================
     -- ÁGUA (sensor — não bloqueia, só detecta)
@@ -158,9 +139,9 @@ function level.load()
     -- LAVA (sensor — não bloqueia, mata)
     -- ==============================
     lava = {}
-    lava.x = sw * 0.38
-    lava.y = sh * 0.565
-    lava.w = sw * 0.24
+    lava.x = sw * 0.63
+    lava.y = sh * 0.724
+    lava.w = sw * 0.32
     lava.h = sh * 0.018
     lava.body    = love.physics.newBody(world, lava.x + lava.w/2, lava.y + lava.h/2, "static")
     lava.shape   = love.physics.newRectangleShape(lava.w, lava.h)
@@ -241,6 +222,7 @@ function level.update(dt)
  
     local px, py = player.body:getPosition()
  
+    
     -- Caiu fora da tela → respawn
     if py > sh * 1.1 then
         respawnPlayer()
