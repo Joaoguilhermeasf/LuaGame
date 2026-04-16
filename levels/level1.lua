@@ -29,7 +29,6 @@ function spawnBall(x, y)
     b.accel     = 190
     b.jumps     = 0
     b.active    = false
-    b.hasJumped = false
     b.goingHome = false
     b.dead      = false
     table.insert(balls, b)
@@ -44,11 +43,14 @@ function level.load()
     background = love.graphics.newImage("/assets/background.png")
     biggie     = love.graphics.newImage("/assets/biggie.png")
     playerImg  = love.graphics.newImage("/assets/bLob.png")
-    playerImg2  = love.graphics.newImage("/assets/bLob2.png")
+    playerImg2 = love.graphics.newImage("/assets/bLob2.png")
     lostPonkas = love.graphics.newImage("/assets/lostPonkas.png")
     ponka      = love.graphics.newImage("/assets/ponka.png")
     bush       = love.graphics.newImage("/assets/bush.png")
     foot       = love.graphics.newImage("/assets/foot.png")
+    mom1       = love.graphics.newImage("/assets/mom1.png")
+    mom2       = love.graphics.newImage("/assets/mom2.png")
+    houseImg = mom1
 
     -- PLAYER
     player = {}
@@ -57,25 +59,25 @@ function level.load()
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel   = 200
     player.jumps   = 0
-    player.img       = playerImg
-    player.flipTimer = math.random(10, 15) / 100  -- 0.10s a 0.30s
+    player.img     = playerImg
+    player.flipTimer = math.random(10, 15) / 100
 
     -- TEXTO
     font = love.graphics.newFont(24)
+
     welcomeText = love.graphics.newText(font, "Slide the left side of your screen to move!")
     textX = sw/2
     textY = sh/2
     fade = 0
     fadeVel = 0.5
 
-    font = love.graphics.newFont(24)
     jumpText = love.graphics.newText(font, "Touch on the right side to jump!")
     jumptextX = sw*1.3
     jumptextY = sh/2
     fadeJ = 0
     fadeJVel = 0.5
 
-    -- CHÃO
+    -- CHÃO 1
     ground = {}
     local groundHeight = sh / 2
     ground.body    = love.physics.newBody(world, sw/2, sh + groundHeight*0.2, "static")
@@ -84,7 +86,7 @@ function level.load()
     ground.fixture:setUserData({allowJump = true})
 
     -- CHÃO 2
-    local gap          = 200
+    local gap = 200
     local ground2Width = sw * 1.5
     local ground2Height = sh / 2
     local ground1RightEdge = sw/2 + (sw * 2) / 2
@@ -96,26 +98,67 @@ function level.load()
     ground2.fixture = love.physics.newFixture(ground2.body, ground2.shape)
     ground2.fixture:setUserData({allowJump = true})
 
-    -- PLAT
-    platX, platY = ground2.body:getPosition()
-
+    -- PLATAFORMA
     local baseH = sh
-    local baseW = baseH * (biggie:getWidth() / biggie:getHeight())
-
+    local baseW = baseH * (biggie:getWidth() / biggie:getHeight())  
+    
     plat = {}
     plat.w = baseW * PLAT_SCALE
     plat.h = baseH * PLAT_SCALE
+     platX, platY = ground2.body:getPosition()
 
-    plat.body    = love.physics.newBody(world, platX, platY*0.4, "kinematic")
-    plat.shape   = love.physics.newRectangleShape(plat.w*0.7, plat.h)
-    plat.fixture = love.physics.newFixture(plat.body, plat.shape)
-    plat.fixture:setUserData({allowJump = true})
-    plat.speed   = 300
+    plat.body = love.physics.newBody(world, platX, platY*0.4, "kinematic")
 
-    -- PONKAS
+    local w = plat.w * 0.7
+    local h = plat.h
+    local r = sw/10 -- RAIO DOS CANTOS
+
+    plat.fixtures = {}
+
+    local rectShape = love.physics.newRectangleShape(w - 2*r, h)
+    local rectFix = love.physics.newFixture(plat.body, rectShape)
+    rectFix:setUserData({allowJump = true})
+    table.insert(plat.fixtures, rectFix)
+
+    local sideLeft  = love.physics.newRectangleShape(-w/2 + r/2, 0, r, h - 2*r)
+    local sideRight = love.physics.newRectangleShape( w/2 - r/2, 0, r, h - 2*r)
+
+    for _, shape in ipairs({sideLeft, sideRight}) do
+        local fix = love.physics.newFixture(plat.body, shape)
+        fix:setUserData({allowJump = true})
+        table.insert(plat.fixtures, fix)
+    end
+
+    local corners = {
+        { w/2 - r,  h/2 - r},
+        {-w/2 + r,  h/2 - r},
+        { w/2 - r, -h/2 + r},
+        {-w/2 + r, -h/2 + r},
+    }
+
+    for _, c in ipairs(corners) do
+        local shape = love.physics.newCircleShape(c[1], c[2], r)
+        local fix = love.physics.newFixture(plat.body, shape)
+        fix:setUserData({allowJump = true})
+        table.insert(plat.fixtures, fix)
+    end
+
+    plat.speed = 300
+
+    -- O OLHO QUE SEGUE O PLAYER
+    eye = {}
+    eye.x, eye.y = plat.body:getPosition()
+    eye.y = eye.y * (-0.4)
+
+    eye.offsetX1 = -(sw/10)
+    eye.offsetX2 =  (sw/10)
+    eye.offsetY  = -(sw/10)
+
+    -- BALLS
     balls = {}
     pX, pY = plat.body:getPosition()
-    spawnBall(pX, pY - sh)
+
+    local b = spawnBall(pX, pY - sh)
 
     -- BUTTON
     local bw = sh/10
@@ -128,7 +171,7 @@ function level.load()
     buttonX = pX2 - plat.w/2
     buttonY = (sh + (sh/2)*0.2) - (sh/2)/2 - button.h/2
 
-    button.body    = love.physics.newBody(world, buttonX, buttonY, "kinematic")
+    button.body    = love.physics.newBody(world, buttonX*1.001, buttonY, "kinematic")
     button.shape   = love.physics.newRectangleShape(button.w, button.h)
     button.fixture = love.physics.newFixture(button.body, button.shape)
     button.fixture:setUserData({allowJump = true})
@@ -139,33 +182,48 @@ function level.load()
     wall.shape   = love.physics.newRectangleShape(sw, sh*4)
     wall.fixture = love.physics.newFixture(wall.body, wall.shape)
 
+    -- HOUSE OLHO
+    houseEye = {}
+    houseEye.offsetX1 = -sw/50
+    houseEye.offsetX2 =  sw/50
+    houseEye.offsetY  = -sh/18
+
     -- CALLBACKS
     world:setCallbacks(function(a, b, coll)
         local dataA, dataB = a:getUserData(), b:getUserData()
 
+        -- botão ativa plataforma
         if (a == player.fixture and b == button.fixture) or
            (b == player.fixture and a == button.fixture) then
             movePlat = true
         end
 
+        -- reset de pulo player
         if (a == player.fixture and dataB and dataB.allowJump) or
            (b == player.fixture and dataA and dataA.allowJump) then
             player.jumps = 0
         end
 
+        -- ativar balls ao tocar player
         for _, ball in ipairs(balls) do
             if (a == player.fixture and b == ball.fixture) or
                (b == player.fixture and a == ball.fixture) then
+                if ball.active == false then
                 ball.img    = ponka
                 ball.active = true
+                else
+                ball.img    = lostPonkas
+                ball.active = false
+                end
             end
         end
     end)
 
-    -- END LEVEL 
-    local g2x, g2y   = ground2.body:getPosition()
-    local houseW     = sw / 5
-    local houseH     = sh / 5
+    -- END LEVEL
+    local g2x, g2y = ground2.body:getPosition()
+    local houseW = sw / 5
+    local houseH = sh / 5
+
     endLevelX = g2x + ground2Width/2 - houseW/2
     endLevelY = g2y - ground2Height/2 - houseH/2
 end
@@ -215,44 +273,57 @@ function level.update(dt)
     if movePlat then
         local px, py = plat.body:getPosition()
 
-        local limitY = sh*1.21
+        local limitY = sh*1.15
 
         if py < limitY then
             plat.body:setLinearVelocity(0, plat.speed)
         else
             plat.body:setLinearVelocity(0, 0)
         end
+
+        if py < limitY then
+            eye.y = eye.y + plat.speed * dt
+        end
+
     end
 
     -- BOLAS
+    local someoneNearHouse = false
+
     for _, b in ipairs(balls) do
         local bx, by = b.body:getPosition()
 
-        if not b.hasJumped and math.abs(bx - xJump) < 5 then
-            local bvx, _ = b.body:getLinearVelocity()
-            b.body:setLinearVelocity(bvx, -500)
-            b.hasJumped = true
-        end
-
         if by > sh then
-            b.body:setPosition(sw*2.5, checkpointY)
-            b.body:setLinearVelocity(0, 0)
+            local px, py = plat.body:getPosition()
+            local safeY = py - plat.h/2 - b.shape:getRadius() - 10
+            b.body:setPosition(px, safeY)
+            b.body:setLinearVelocity(0,0)
+            b.body:setAngularVelocity(0)
+            b.body:setBullet(true)
+
             b.active    = false
             b.goingHome = false
             b.img       = lostPonkas
             b.body:setGravityScale(1)
         end
 
+        local dx   = endLevelX - bx
+        local dy   = endLevelY - by
+        local dist = math.sqrt(dx*dx + dy*dy)
+
+        -- 🔥 ativa automaticamente perto da house
+        if not b.active and dist < sw * 0.3 then
+            b.active = true
+            b.img = ponka
+        end
+
+        if dist < sw * 0.3 then
+            b.goingHome = true
+            someoneNearHouse = true
+        end
+
         if b.active then
             local bvx, bvy = b.body:getLinearVelocity()
-
-            local dx   = endLevelX - bx
-            local dy   = endLevelY - by
-            local dist = math.sqrt(dx*dx + dy*dy)
-
-            if dist < sw * 0.3 then
-                b.goingHome = true
-            end
 
             if b.goingHome then
                 b.fixture:setSensor(true)
@@ -264,7 +335,6 @@ function level.update(dt)
                     b.body:setGravityScale(0)  
                 end
             else
-                
                 if (x - bx) > sh/5 then
                     bvx = math.min(bvx + b.accel * dt, 1600)
                 elseif (x - bx) < -sh/5 then
@@ -275,6 +345,13 @@ function level.update(dt)
                 b.body:setLinearVelocity(bvx, bvy)
             end
         end
+    end
+
+    -- 🔥 troca imagem da house
+    if someoneNearHouse then
+        houseImg = mom2
+    else
+        houseImg = mom1
     end
 
     for i = #balls, 1, -1 do
@@ -320,7 +397,7 @@ function level.keypressed(key)
         if love.keyboard.isDown("right") then vx = 350
         elseif love.keyboard.isDown("left") then vx = -350 end
 
-        player.body:setLinearVelocity(vx, -500)
+        player.body:setLinearVelocity(vx, -900)
     end
 
     if key == "r" then
@@ -370,6 +447,28 @@ function love.touchreleased(id, x, y)
     end
 end
 
+local function drawEye(eyeX, eyeY, targetX, targetY, eyeRadius, pupilRadius)
+    local dx = targetX - eyeX
+    local dy = targetY - eyeY
+
+    local dist = math.sqrt(dx*dx + dy*dy)
+    if dist ~= 0 then
+        dx = dx / dist
+        dy = dy / dist
+    end
+
+    local maxOffset = eyeRadius - pupilRadius
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.circle("fill", eyeX, eyeY, eyeRadius)
+
+    local pupilX = eyeX + dx * maxOffset
+    local pupilY = eyeY + dy * maxOffset
+
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.circle("fill", pupilX, pupilY, pupilRadius)
+end
+
 function level.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
 
@@ -399,6 +498,43 @@ function level.draw()
         love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
     end
 
+    
+
+    -- PLATAFORMA
+    love.graphics.setColor(1, 1, 1)
+    do
+        local x, y = plat.body:getPosition()
+        local scale = plat.h / biggie:getHeight()
+
+        -- desenha a imagem da plataforma
+        love.graphics.draw(
+            biggie,
+            x, y,
+            0,
+            scale, scale,
+            biggie:getWidth()/2,
+            biggie:getHeight()/2
+        )
+    end
+
+    local px, py = player.body:getPosition()
+
+   drawEye(
+    eye.x + eye.offsetX1,
+    eye.y + eye.offsetY,
+    px, py,
+    110,   -- eyeRadius
+    55     -- pupilRadius
+    )
+
+    drawEye(
+        eye.x + eye.offsetX2,
+        eye.y + eye.offsetY,
+        px, py,
+        110,
+        55
+    )
+
     -- CHÃO 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     do
@@ -407,15 +543,8 @@ function level.draw()
         love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
     end
 
-    -- PLATAFORMA
+    -- BUTTON
     love.graphics.setColor(1, 1, 1)
-    do
-        local x, y = plat.body:getPosition()
-        local scale = plat.h / biggie:getHeight()
-        love.graphics.draw(biggie, x, y, 0, scale, scale, biggie:getWidth()/2, biggie:getHeight()/2)
-    end
-
-    -- BUTTON (usa tamanho real)
     do
         local x, y = button.body:getPosition()
         local sx = button.w / foot:getWidth()
@@ -435,13 +564,6 @@ function level.draw()
     love.graphics.setColor(1, 1, 1)
    
 
-    -- HOUSE
-    love.graphics.setColor(1, 0.6, 0.6)
-    do
-        local w, h = sw/5, sh/5
-        love.graphics.rectangle("fill", endLevelX - w/2, endLevelY - h/2, w, h, 10, 10)
-    end
-
     -- TEXTOS
     love.graphics.setColor(1, 1, 1, fade)
     love.graphics.draw(
@@ -456,6 +578,54 @@ function level.draw()
         jumptextX - welcomeText:getWidth()/2,
         jumptextY - welcomeText:getHeight()/2
     )
+
+    -- HOUSE (imagem)
+    love.graphics.setColor(1,1,1)
+    do
+        local w, h = sw/5, sh/5
+
+        local sx = w / houseImg:getWidth()
+        local sy = h / houseImg:getHeight()
+
+        love.graphics.draw(
+            houseImg,
+            endLevelX,
+            endLevelY,
+            0,
+            sx,
+            sy,
+            houseImg:getWidth()/2,
+            houseImg:getHeight()/2
+        )
+            local px, py
+        for _, b in ipairs(balls) do
+             px, py = b.body:getPosition()
+        end
+       
+
+        -- posição base da house
+        local hx = endLevelX
+        local hy = endLevelY
+
+        drawEye(
+        hx + houseEye.offsetX1,
+        hy + houseEye.offsetY,
+        px, py,
+        28,
+        14
+    )
+
+    drawEye(
+        hx + houseEye.offsetX2,
+        hy + houseEye.offsetY,
+        px, py,
+        28,
+        14
+    )
+    end
+    
+
+    
 
     love.graphics.setColor(1, 1, 1)
 
