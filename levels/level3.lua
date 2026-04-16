@@ -139,9 +139,9 @@ function level.load()
     -- LAVA (sensor — não bloqueia, mata)
     -- ==============================
     lava = {}
-    lava.x = sw * 0.63
+    lava.x = sw * 0.48
     lava.y = sh * 0.724
-    lava.w = sw * 0.32
+    lava.w = sw * 0.47
     lava.h = sh * 0.018
     lava.body    = love.physics.newBody(world, lava.x + lava.w/2, lava.y + lava.h/2, "static")
     lava.shape   = love.physics.newRectangleShape(lava.w, lava.h)
@@ -207,7 +207,7 @@ end
 -- RESPAWN
 -- ==============================
 function respawnPlayer()
-    player.body:setPosition(checkpointX, checkpointY)
+    player.body:setPosition(-800, -100)
     player.body:setLinearVelocity(0, 0)
     player.body:setAngularVelocity(0)
     player.jumps = 0
