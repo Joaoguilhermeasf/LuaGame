@@ -2,7 +2,8 @@ local play = {}
 
 local levels = {
     "levels.level1",
-    "levels.level2"
+    "levels.level2",
+    "levels.level3"
 }
 
 local botoes = {}
