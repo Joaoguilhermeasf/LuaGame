@@ -52,7 +52,7 @@ function level.load()
 
     -- PLAYER
     player = {}
-    player.body = love.physics.newBody(world, -800, -100, "dynamic") --Onde o palyer vai spaenar
+    player.body = love.physics.newBody(world, 100, 200, "dynamic") --Onde o palyer vai spaenar
     player.shape = love.physics.newCircleShape(24)
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
@@ -113,10 +113,15 @@ function level.load()
     -- ==========================
     -- INICIO SEGUNDO PISO
     -- ==========================
-    addPlat(sw*1.4,   sh*0.7,  sw*0.9, sh*0.09, true)
+    addPlat(sw*1.4,   sh*0.7,   sw*0.9,    sh*0.09, true) -- Local onde começa
+    addPlat(sw*0.7,   sh*0.58,  sw*0.211,  sh*0.03, true) -- Plat sobre a lava
+    addPlat(sw*0.15,  sh*0.7,   sw*0.66,   sh*0.09, true) -- Base do local pós lava
 
-   
+    addPlat(sw*0.4744, sh*0.65,  sw*0.011, sh*0.1,  true) --Bloco de segurança pós lava
 
+    addPlat(sw*0.07,  sh*0.62, sw*0.5,    sh*0.18,  true) --Primeiro degrau
+    addPlat(sw*0.001, sh*0.5,  sw*0.362,  sh*0.18,  true) --Segundo degrau
+    addPlat(-sw*0.08, sh*0.37,  sw*0.2,  sh*0.18,  true) --Terceiro degrau
     -- Chão do fundo (kill zone já tratada por y > sh)
     -- Parede direita
     addPlat(sw*1.86,   sh*0.5,   sw*0.04, sh*2, false)
