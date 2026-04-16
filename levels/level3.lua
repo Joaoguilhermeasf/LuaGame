@@ -313,7 +313,7 @@ function level.keypressed(key)
 
     if key == "r" then
         love.draw()
-        playerSpawn(checkpointX, checkpointY,player)
+        respawnPlayer()
     end
 end
  
