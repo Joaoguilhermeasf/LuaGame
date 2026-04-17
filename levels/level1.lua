@@ -9,7 +9,7 @@ local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
-local checkpointX = sw*2
+local checkpointX = sw
 local checkpointY = (sh/2) * 1.6
 
 local PLAT_SCALE = 2
@@ -87,7 +87,7 @@ function level.load()
 
     -- CHÃO 2
     local gap = 200
-    local ground2Width = sw * 1.5
+    local ground2Width = sw 
     local ground2Height = sh / 2
     local ground1RightEdge = sw/2 + (sw * 2) / 2
     local ground2X = ground1RightEdge + gap + ground2Width / 2
@@ -109,7 +109,7 @@ function level.load()
 
     plat.body = love.physics.newBody(world, platX, platY*0.4, "kinematic")
 
-    local w = plat.w * 0.7
+    local w = plat.w * 0.82
     local h = plat.h
     local r = sw/10 -- RAIO DOS CANTOS
 
@@ -160,22 +160,6 @@ function level.load()
 
     local b = spawnBall(pX, pY - sh)
 
-    -- BUTTON
-    local bw = sh/10
-    local pX2, pY2 = plat.body:getPosition()
-
-    button = {}
-    button.w = (bw*1.5) * BUTTON_SCALE
-    button.h = bw * BUTTON_SCALE
-
-    buttonX = pX2 - plat.w/2
-    buttonY = (sh + (sh/2)*0.2) - (sh/2)/2 - button.h/2
-
-    button.body    = love.physics.newBody(world, buttonX*1.001, buttonY, "kinematic")
-    button.shape   = love.physics.newRectangleShape(button.w, button.h)
-    button.fixture = love.physics.newFixture(button.body, button.shape)
-    button.fixture:setUserData({allowJump = true})
-
     -- WALL
     wall = {}
     wall.body    = love.physics.newBody(world, -sw/2, sh/2, "static")
@@ -186,17 +170,12 @@ function level.load()
     houseEye = {}
     houseEye.offsetX1 = -sw/50
     houseEye.offsetX2 =  sw/50
-    houseEye.offsetY  = -sh/18
+    houseEye.offsetY  = -sh/15
 
     -- CALLBACKS
     world:setCallbacks(function(a, b, coll)
         local dataA, dataB = a:getUserData(), b:getUserData()
 
-        -- botão ativa plataforma
-        if (a == player.fixture and b == button.fixture) or
-           (b == player.fixture and a == button.fixture) then
-            movePlat = true
-        end
 
         -- reset de pulo player
         if (a == player.fixture and dataB and dataB.allowJump) or
@@ -243,6 +222,13 @@ function level.update(dt)
     world:update(dt)
 
     local x, y = player.body:getPosition()
+    
+    do
+    local px, py = plat.body:getPosition()
+        if math.abs(x-px) < sw/2 then
+            movePlat = true
+        end
+    end
 
     player.flipTimer = player.flipTimer - dt
     if player.flipTimer <= 0 then
@@ -506,15 +492,7 @@ function level.draw()
         local x, y = plat.body:getPosition()
         local scale = plat.h / biggie:getHeight()
 
-        -- desenha a imagem da plataforma
-        love.graphics.draw(
-            biggie,
-            x, y,
-            0,
-            scale, scale,
-            biggie:getWidth()/2,
-            biggie:getHeight()/2
-        )
+        love.graphics.draw(biggie, x, y, 0, scale, scale, biggie:getWidth()/2, biggie:getHeight()/2)
     end
 
     local px, py = player.body:getPosition()
@@ -523,35 +501,25 @@ function level.draw()
     eye.x + eye.offsetX1,
     eye.y + eye.offsetY,
     px, py,
-     sw/18,
-        sw/36
+     sw/20,
+        sw/40
     )
 
     drawEye(
         eye.x + eye.offsetX2,
         eye.y + eye.offsetY,
         px, py,
-        sw/18,
-        sw/36
+        sw/20,
+        sw/40
     )
 
     -- CHÃO 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     do
         local x, y = ground2.body:getPosition()
-        local w, h = sw*1.5, sh/2
+        local w, h = sw, sh/2
         love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
     end
-
-    -- BUTTON
-    love.graphics.setColor(1, 1, 1)
-    do
-        local x, y = button.body:getPosition()
-        local sx = button.w / foot:getWidth()
-        local sy = button.h / foot:getHeight()
-        love.graphics.draw(foot, x, y, 0, sx, sy, foot:getWidth()/2, foot:getHeight()/2)
-    end
-
 
     -- WALL
     love.graphics.setColor(0.8, 0.7, 0.6)
@@ -579,7 +547,7 @@ function level.draw()
         jumptextY - welcomeText:getHeight()/2
     )
 
-    -- HOUSE (imagem)
+    -- HOUSE
     love.graphics.setColor(1,1,1)
     do
         local w, h = sw/5, sh/5
