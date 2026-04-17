@@ -9,7 +9,7 @@ local sh = love.graphics.getHeight()
 
 local xJump = 0
 local movePlat = false
-local checkpointX = sw*2
+local checkpointX = sw
 local checkpointY = (sh/2) * 1.6
 
 local PLAT_SCALE = 2
@@ -87,7 +87,7 @@ function level.load()
 
     -- CHÃO 2
     local gap = 200
-    local ground2Width = sw * 1.5
+    local ground2Width = sw 
     local ground2Height = sh / 2
     local ground1RightEdge = sw/2 + (sw * 2) / 2
     local ground2X = ground1RightEdge + gap + ground2Width / 2
@@ -225,7 +225,7 @@ function level.update(dt)
     
     do
     local px, py = plat.body:getPosition()
-        if math.abs(x-px) > sw/3 then
+        if math.abs(x-px) < sw/2 then
             movePlat = true
         end
     end
@@ -501,23 +501,23 @@ function level.draw()
     eye.x + eye.offsetX1,
     eye.y + eye.offsetY,
     px, py,
-     sw/18,
-        sw/36
+     sw/20,
+        sw/40
     )
 
     drawEye(
         eye.x + eye.offsetX2,
         eye.y + eye.offsetY,
         px, py,
-        sw/18,
-        sw/36
+        sw/20,
+        sw/40
     )
 
     -- CHÃO 2
     love.graphics.setColor(0.8, 0.7, 0.6)
     do
         local x, y = ground2.body:getPosition()
-        local w, h = sw*1.5, sh/2
+        local w, h = sw, sh/2
         love.graphics.rectangle("fill", x - w/2, y - h/2, w, h, 20, 20)
     end
 
