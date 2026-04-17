@@ -7,8 +7,8 @@ local camX, camY = 0, 0
 local sw = love.graphics.getWidth()  --LARGURA DA TELA
 local sh = love.graphics.getHeight() --ALTURA DA TELA
 
---local checkpointX = sw * 0.08
---local checkpointY = sh * 0.25
+local checkpointX = -800
+local checkpointY = -100
 local xJump = 0
 local movePlat = false
 local checkpointX = sw/2
@@ -52,7 +52,7 @@ function level.load()
 
     -- PLAYER
     player = {}
-    player.body = love.physics.newBody(world, -800, -100, "dynamic") --Onde o palyer vai spaenar
+    player.body = love.physics.newBody(world, 100, 200, "dynamic") --Onde o palyer vai spaenar
     player.shape = love.physics.newCircleShape(24)
     player.fixture = love.physics.newFixture(player.body, player.shape)
     player.accel = 200
@@ -87,7 +87,7 @@ function level.load()
     end
 
     -- Parede esquerda
-    addPlat(-sw*0.8,  sh*0.5,   sw/2, sh*2, false) --Localização, localização, Largura penultimo
+    addPlat(-sw*0.8,  sh*0.8,   sw/2, sh*3, false) --Localização, localização, Largura penultimo
 
     -- ==========================
     -- INICIO PRIMEIRO PISO
@@ -108,7 +108,6 @@ function level.load()
     -- ===========================
     -- FIM PRIMEIRO PISO
     -- ===========================
-
    
     -- ==========================
     -- INICIO SEGUNDO PISO
@@ -122,9 +121,26 @@ function level.load()
     addPlat(sw*0.07,  sh*0.62, sw*0.5,    sh*0.18,  true) --Primeiro degrau
     addPlat(sw*0.001, sh*0.5,  sw*0.362,  sh*0.18,  true) --Segundo degrau
     addPlat(-sw*0.08, sh*0.37,  sw*0.2,  sh*0.18,  true) --Terceiro degrau
-    -- Chão do fundo (kill zone já tratada por y > sh)
+    -- ==========================
+    -- FIM SEGUNDO PISO
+    -- ==========================
+
+    -- ==========================
+    -- INICIO TERCEIRO PISO
+    -- ==========================
+    addPlat(-sw*0.2, sh*1.5, sw*0.8, sh*0.7, true) --Primeiro piso, ond cai
+    addPlat(sw, sh*1.55, sw*1.8, sh*0.5, true) -- Plataforma em baixo meio
+    addPlat(sw*0.5,   sh*1.16,  sw*0.216,  sh*0.03, true) -- Priemira plataforma flutuante
+    addPlat(sw*0.9,   sh*1.1,  sw*0.216,  sh*0.03, true) -- Segunda plataforma flutuante
+    addPlat(sw*1.3,   sh*1.06,  sw*0.216,  sh*0.03, true) -- Terceira plataforma flutuante
+
+    addPlat(sw*1.7,   sh*1.15,  sw*0.4,  sh*0.4, true) -- Plataforma final
+    -- ==========================
+    -- FIM TERCEIRO PISO
+    -- ==========================
+
     -- Parede direita
-    addPlat(sw*1.86,   sh*0.5,   sw*0.04, sh*2, false)
+    addPlat(sw*2.2,   sh*0.5,   sw*0.7, sh*3, false)
 
     -- ==============================
     -- ÁGUA (sensor — não bloqueia, só detecta)
@@ -235,7 +251,7 @@ function level.update(dt)
     end
 
     -- Caiu fora da tela → respawn
-    if py > sh * 1.1 then
+    if py > sh * 2 then
         respawnPlayer()
         return
     end
@@ -375,7 +391,7 @@ function level.draw()
     love.graphics.rectangle("fill", 0, 0, sw, sh)
  
     love.graphics.push()
-    love.graphics.translate(-camX, -math.min(camY, 0))
+    love.graphics.translate(-camX, -camY, 0)
  
     -- PLATAFORMAS
     love.graphics.setColor(0.93, 0.75, 0.35)
