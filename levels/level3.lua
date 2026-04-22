@@ -255,17 +255,14 @@ function level.update(dt)
         respawnPlayer()
         return
     end
- 
-    -- BOLAS: seguir o player quando ativas (igual level1)
+
+     -- ==============================
+     --            BOLAS
+     -- ==============================
+     -- seguir o player quando ativas
     for _, b in ipairs(balls) do
         local bx, by = b.body:getPosition()
- 
-        -- Pular junto com o player
-        if not b.hasJumped and math.abs(bx - xJump) < 5 then
-            local bvx, _ = b.body:getLinearVelocity()
-            b.body:setLinearVelocity(bvx, -500)
-            b.hasJumped = true
-        end
+
  
         -- Respawn da bola se cair
         if by > sh then
@@ -288,19 +285,11 @@ function level.update(dt)
             b.body:setLinearVelocity(bvx, bvy)
         end
     end
+     -- ==============================
+     --          FIM  BOLAS
+     -- ==============================
  
-    -- Movimento do player
-    local vx, vy   = player.body:getLinearVelocity()
-    local speedMax = inWater and 200 or 500
-    local accel    = player.accel
- 
-    if love.keyboard.isDown("right") or movingDir == 1 then
-        if vx < speedMax then vx = vx + accel * dt else vx = speedMax end
-    elseif love.keyboard.isDown("left") or movingDir == -1 then
-        if vx > -speedMax then vx = vx - accel * dt else vx = -speedMax end
-    else
-        vx = vx * 0.92
-    end
+
  
     player.body:setLinearVelocity(vx, vy)
  
