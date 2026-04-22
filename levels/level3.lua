@@ -89,23 +89,32 @@ function level.load()
     -- ==============================
     -- FUNÇÃO PARA ADICIONAR RAMPAS
     -- ==============================
+    -- ponto esquerdo baixo, ponto direito baixo, ponto direito alto
     local function addRamp(x1, y1, x2, y2, x3, y3)
     local p = {}
-    -- centro do triângulo (média dos vértices)
     local cx = (x1 + x2 + x3) / 3
     local cy = (y1 + y2 + y3) / 3
+
+    -- Ordena os vértices em sentido anti-horário
+    local verts = {
+        {x = x1 - cx, y = y1 - cy},
+        {x = x2 - cx, y = y2 - cy},
+        {x = x3 - cx, y = y3 - cy},
+    }
+    table.sort(verts, function(a, b)
+        return math.atan2(a.y, a.x) < math.atan2(b.y, b.x)
+    end)
+
     p.body    = love.physics.newBody(world, cx, cy, "static")
-    -- vértices relativos ao centro
     p.shape   = love.physics.newPolygonShape(
-        x1 - cx, y1 - cy,
-        x2 - cx, y2 - cy,
-        x3 - cx, y3 - cy
+        verts[1].x, verts[1].y,
+        verts[2].x, verts[2].y,
+        verts[3].x, verts[3].y
     )
     p.fixture = love.physics.newFixture(p.body, p.shape)
     p.fixture:setFriction(0.8)
     p.fixture:setUserData({ allowJump = true, type = "ground" })
-    -- guarda os vértices originais para o draw
-    p.verts = { x1, y1, x2, y2, x3, y3 }
+    p.verts   = { x1, y1, x2, y2, x3, y3 }
     table.insert(platforms, p)
 end
 
@@ -125,7 +134,7 @@ end
     addPlat(sw*0.04,   -sh*0.05,  sw*0.1, sh*0.3, true) -- Parede primeiro salto
     addPlat(-sw*0.01,   -sh*0.05,  sw*0.001, sh*0.3, false) -- Antipulo da parede
     addPlat(sw*0.25, -sh*0.14, sw*0.4, sh*0.12, true) -- Parte de cima caverna
-    addRamp(sw*0.3, sh*0.5,   sw*0.5, sh*0.5,   sw*0.5, sh*0.4) -- Rampa pra entrar na piscina
+    addRamp(sw*0.5, sh*0.1,   sw*0.711, sh*0.1,   sw*0.711, sh*0.001) -- Rampa pra entrar na piscina
     addPlat(sw*0.75,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede pós cavenar (Priemiro piscina)
     addPlat(sw*1.13,   -sh*0.095,  sw*0.3, sh*0.04, true) -- Plataforma cima da psicina
     addPlat(sw*1.51,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede fim piscina
