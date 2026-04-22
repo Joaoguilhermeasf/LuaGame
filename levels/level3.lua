@@ -86,6 +86,29 @@ function level.load()
         table.insert(platforms, p)
     end
 
+    -- ==============================
+    -- FUNÇÃO PARA ADICIONAR RAMPAS
+    -- ==============================
+    local function addRamp(x1, y1, x2, y2, x3, y3)
+    local p = {}
+    -- centro do triângulo (média dos vértices)
+    local cx = (x1 + x2 + x3) / 3
+    local cy = (y1 + y2 + y3) / 3
+    p.body    = love.physics.newBody(world, cx, cy, "static")
+    -- vértices relativos ao centro
+    p.shape   = love.physics.newPolygonShape(
+        x1 - cx, y1 - cy,
+        x2 - cx, y2 - cy,
+        x3 - cx, y3 - cy
+    )
+    p.fixture = love.physics.newFixture(p.body, p.shape)
+    p.fixture:setFriction(0.8)
+    p.fixture:setUserData({ allowJump = true, type = "ground" })
+    -- guarda os vértices originais para o draw
+    p.verts = { x1, y1, x2, y2, x3, y3 }
+    table.insert(platforms, p)
+end
+
     -- Parede esquerda
     addPlat(-sw*0.8,  sh*0.8,   sw/2, sh*3, false) --Localização, localização, Largura penultimo
 
@@ -102,6 +125,7 @@ function level.load()
     addPlat(sw*0.04,   -sh*0.05,  sw*0.1, sh*0.3, true) -- Parede primeiro salto
     addPlat(-sw*0.01,   -sh*0.05,  sw*0.001, sh*0.3, false) -- Antipulo da parede
     addPlat(sw*0.25, -sh*0.14, sw*0.4, sh*0.12, true) -- Parte de cima caverna
+    addRamp(sw*0.3, sh*0.5,   sw*0.5, sh*0.5,   sw*0.5, sh*0.4) -- Rampa pra entrar na piscina
     addPlat(sw*0.75,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede pós cavenar (Priemiro piscina)
     addPlat(sw*1.13,   -sh*0.095,  sw*0.3, sh*0.04, true) -- Plataforma cima da psicina
     addPlat(sw*1.51,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede fim piscina
@@ -400,9 +424,16 @@ function level.draw()
     -- PLATAFORMAS
     love.graphics.setColor(0.93, 0.75, 0.35)
     for _, p in ipairs(platforms) do
-        local x, y = p.body:getPosition()
+    local x, y = p.body:getPosition()
+    love.graphics.setColor(0.93, 0.75, 0.35)
+    if p.verts then
+        -- é uma rampa, desenha como polígono
+        love.graphics.polygon("fill", p.verts)
+    else
+        -- é uma plataforma normal
         love.graphics.rectangle("fill", x - p.w/2, y - p.h/2, p.w, p.h, 6, 6)
     end
+end
  
     -- ÁGUA
     do
