@@ -309,9 +309,9 @@ function level.update(dt)
         if b.active then
             local bvx, bvy = b.body:getLinearVelocity()
             if (px - bx) > sh / 5 then
-                bvx = math.min(bvx + b.accel * dt, 1600)
+                bvx = math.min(bvx + b.accel * dt * 1.5, 1600)
             elseif (px - bx) < -sh / 5 then
-                bvx = math.max(bvx - b.accel * dt, -1600)
+                bvx = math.max(bvx - b.accel * dt * 1.5, -1600)
             else
                 bvx = bvx * 0.95
             end
