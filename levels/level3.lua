@@ -289,7 +289,18 @@ function level.update(dt)
      --          FIM  BOLAS
      -- ==============================
  
-
+    -- Movimento do player
+    local vx, vy   = player.body:getLinearVelocity()
+    local speedMax = inWater and 200 or 500
+    local accel    = player.accel
+ 
+    if love.keyboard.isDown("right") or movingDir == 1 then
+        if vx < speedMax then vx = vx + accel * dt else vx = speedMax end
+    elseif love.keyboard.isDown("left") or movingDir == -1 then
+        if vx > -speedMax then vx = vx - accel * dt else vx = -speedMax end
+    else
+        vx = vx * 0.92
+    end
  
     player.body:setLinearVelocity(vx, vy)
  
@@ -379,6 +390,10 @@ function level.draw()
     love.graphics.setColor(0.44, 0.82, 0.91)
     love.graphics.rectangle("fill", 0, 0, sw, sh)
  
+    -- Background
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(background, 0, 0, 0, sw/background:getWidth(), sh/background:getHeight())
+    
     love.graphics.push()
     love.graphics.translate(-camX, -camY, 0)
  
