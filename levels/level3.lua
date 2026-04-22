@@ -136,7 +136,9 @@ end
     addPlat(sw*0.25, -sh*0.14, sw*0.4, sh*0.12, true) -- Parte de cima caverna
     addRamp(sw*0.5, sh*0.1,   sw*0.711, sh*0.1,   sw*0.711, sh*0.001) -- Rampa pra entrar na piscina
     addPlat(sw*0.75,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede pós cavenar (Priemiro piscina)
+    addRamp(sw*1.04, sh*0.1,   sw*0.788, sh*0.1,   sw*0.788, sh*0.001) -- Primeira rampa pra sair na piscina
     addPlat(sw*1.13,   -sh*0.095,  sw*0.3, sh*0.04, true) -- Plataforma cima da psicina
+    addRamp(sw*1.21, sh*0.1,   sw*1.471, sh*0.1,   sw*1.471, sh*0.001) -- Segunda rampa pra sair na piscina
     addPlat(sw*1.51,   sh*0.05,  sw*0.08, sh*0.1, true) -- Parede fim piscina
     -- ===========================
     -- FIM PRIMEIRO PISO
