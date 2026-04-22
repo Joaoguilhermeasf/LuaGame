@@ -432,20 +432,6 @@ function level.draw()
     love.graphics.push()
     love.graphics.translate(-camX, -camY, 0)
  
-    -- PLATAFORMAS
-    love.graphics.setColor(0.93, 0.75, 0.35)
-    for _, p in ipairs(platforms) do
-    local x, y = p.body:getPosition()
-    love.graphics.setColor(0.93, 0.75, 0.35)
-    if p.verts then
-        -- é uma rampa, desenha como polígono
-        love.graphics.polygon("fill", p.verts)
-    else
-        -- é uma plataforma normal
-        love.graphics.rectangle("fill", x - p.w/2, y - p.h/2, p.w, p.h, 6, 6)
-    end
-end
- 
     -- ÁGUA
     do
         love.graphics.setColor(0.10, 0.30, 0.90, 0.55)
@@ -458,6 +444,20 @@ end
             local wx = water.x + i * segW
             local wy = water.y + 4 + math.sin(t * 3 + i * 0.8) * 3
             love.graphics.rectangle("fill", wx, wy, segW - 1, 3, 2, 2)
+        end
+    end
+
+    -- PLATAFORMAS
+    love.graphics.setColor(0.93, 0.75, 0.35)
+    for _, p in ipairs(platforms) do
+    local x, y = p.body:getPosition()
+    love.graphics.setColor(0.93, 0.75, 0.35)
+    if p.verts then
+        -- é uma rampa, desenha como polígono
+        love.graphics.polygon("fill", p.verts)
+    else
+        -- é uma plataforma normal
+        love.graphics.rectangle("fill", x - p.w/2, y - p.h/2, p.w, p.h, 6, 6)
         end
     end
  
